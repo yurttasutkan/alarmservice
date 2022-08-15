@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  alarmservice:
+    container_name: alarmservice
+    image: alarmservice
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/alarmservice
+    ports:
+      - 9000:9000

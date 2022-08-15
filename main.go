@@ -7,23 +7,18 @@ import (
 
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
+
+	grpcServer := grpc.NewServer()
+
+	als.RegisterAlarmServerServiceServer(grpcServer, &AlarmServerAPI{})
 	lis, err := net.Listen("tcp", ":9000")
 	if err != nil {
 		log.Fatalf("Failed to listen on port 9000: %v", err)
 	}
-
-	grpcServer := grpc.NewServer()
-
-
-	als.RegisterAlarmServerServiceServer(grpcServer, &AlarmServerAPI{})
-	reflection.Register(grpcServer)
-	if e := grpcServer.Serve(lis); e != nil {
-		panic(err)
-	}
+	go grpcServer.Serve(lis)
 }
 
 type AlarmServerAPI struct {

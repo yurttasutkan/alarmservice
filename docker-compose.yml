@@ -9,5 +9,9 @@ services:
       target: development
     volumes:
       - .:/alarmservice
+    links:
+      - postgres
+    environment:
+      - TEST_POSTGRES_DSN=postgres://chirpstack_as:chirpstack_as@postgres/chirpstack_as?sslmode=disable
     ports:
       - 9000:9000

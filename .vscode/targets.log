@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Aug 15 08:36:56 2022
+# Make data base, printed on Wed Aug 17 10:33:24 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
+VSCODE_CWD = C:\Windows\System32
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_12648_HQUHTWPULWKMLSJC
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_86928_NHMHUEQCYLMAKHIW
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 12648
+VSCODE_PID = 86928
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -163,10 +163,11 @@ GNUMAKEFLAGS :=
 # environment
 OS = Windows_NT
 # makefile
-.DEFAULT_GOAL := 
+.DEFAULT_GOAL := build
 # default
 MAKE_VERSION := 4.3
-# environment
+# envi 
+ronment
 PROGRAMFILES(X86) = C:\Program Files (x86)
 # environment
 USERDOMAIN_ROAMINGPROFILE = DESKTOP-56K59CH
@@ -217,7 +218,7 @@ PROCESSOR_REVISION = 9e0a
 # environment
 PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
 # variable set hash-table stats:
-# Load=102/1024=10%, Rehash=0, Collisions=9/128=7%
+# Load=102/1024=10%, Rehash=0, Collisions=9/129=7%
 
 # Pattern-specific Variable Values
 
@@ -225,9 +226,9 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
 
 # Directories
 
-# . (key e:/staj/alarmservice, mtime 1660377721): 14 files, no impossibilities.
+# . (key e:/staj/alarmservice, mtime 1660647751): 13 files, no impossibilities.
 
-# 14 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -238,9 +239,19 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-13 10:40:27
+#  Last modified 2022-08-17 09:10:06
 #  File has been updated.
 #  Successfully updated.
+
+clean:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 9):
+	@echo "Cleaning up workspace"
+	@rm -rf build
+	@rm -rf dist
 
 # Not a target:
 .DEFAULT:
@@ -255,20 +266,54 @@ all:
 #  File does not exist.
 #  File has not been updated.
 
+build:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 4):
+	@echo "Compiling source"
+	@mkdir -p build
+	go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/alarmservice cmd/alarmservice/main.go
+
+test:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 20):
+	@echo "Running tests"
+	go test -p 1 -v ./...
+
+serve: build
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 24):
+	@echo "Starting Alarm Server"
+	./build/alarmservice
+
+.PHONY: build clean test serve
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
 # files hash-table stats:
-# Load=4/1024=0%, Rehash=0, Collisions=0/14=0%
+# Load=9/1024=1%, Rehash=0, Collisions=0/28= 
+0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 17 / storage = 127 B / avg = 7 B
-# current buf: size = 8174 B / used = 127 B / count = 17 / avg = 7 B
+# strcache buffers: 1 (0) / strings = 21 / storage = 156 B / avg = 7 B
+# current buf: size = 8174 B / used = 156 B / count = 21 / avg = 7 B
 
-# strcache performance: lookups = 21 / hit rate = 19%
+# strcache performance: lookups = 35 / hit rate = 40%
 # hash-table stats:
-# Load=17/8192=0%, Rehash=0, Collisions=0/21=0%
-# Finished Make data base on Mon Aug 15 08:36:56 2022
+# Load=21/8192=0%, Rehash=0, Collisions=0/35=0%
+# Finished Make data base on Wed Aug 17 10:33:24 2022
 
  

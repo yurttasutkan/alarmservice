@@ -1,6 +1,7 @@
 make.exe --dry-run --always-make --keep-going --print-directory
 make: Entering directory 'e:/staj/alarmservice'
 echo "Compiling source"
+ 
 mkdir -p build
 go build  -ldflags "-s -w -X main.version=" -o build/alarmservice cmd/alarmservice/main.go
 make: Leaving directory 'e:/staj/alarmservice'

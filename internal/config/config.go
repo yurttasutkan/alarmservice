@@ -5,22 +5,23 @@ type Config struct {
 	General struct {
 		LogLevel                  int    `mapstructure:"log_level"`
 		LogToSyslog               bool   `mapstructure:"log_to_syslog"`
-		PasswordHashIterations    int    `mapstructure:"password_hash_iterations"`
 		GRPCDefaultResolverScheme string `mapstructure:"grpc_default_resolver_scheme"`
 	} `mapstructure:"general"`
 
 	PostgreSQL struct {
 		DSN                string `mapstructure:"dsn"`
-		Automigrate        bool
+		Automigrate        bool `mapstructure:"automigrate"`
 		MaxOpenConnections int `mapstructure:"max_open_connections"`
 		MaxIdleConnections int `mapstructure:"max_idle_connections"`
 	} `mapstructure:"postgresql"`
 
-	AlarmService struct{
-		ID string `mapstructure:"id"`
+	AlarmServer struct{
+		API struct{
+			Bind string `mapstructure:"bind"`
+		} `mapstructure:"api"`
 		Address string `mapstructure:"als_addr"`
 
-	} `mapstructure:"alarm_service"`
+	} `mapstructure:"alarm_server"`
 }
 	// C holds the global configuration.
 	var C Config

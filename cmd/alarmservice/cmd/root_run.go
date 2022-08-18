@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,9 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/resolver"
 
+	"github.com/yurttasutkan/alarmservice/internal/api"
 	"github.com/yurttasutkan/alarmservice/internal/config"
+	"github.com/yurttasutkan/alarmservice/internal/storage"
 )
 
 func run(cmd *cobra.Command, args []string) error {
@@ -24,16 +27,10 @@ func run(cmd *cobra.Command, args []string) error {
 	tasks := []func() error{
 		setLogLevel,
 		setSyslog,
+		setupStorage,
 		setGRPCResolver,
 		printStartMessage,
-		// migrateGatewayStats,
-		// migrateToClusterKeys,
-		// setupIntegration,
-		// setupCodec,
-		// handleDataDownPayloads,
-		// startGatewayPing,
-		// setupAPI,
-		// setupMonitoring,
+		setupAPI,
 	}
 
 	for _, t := range tasks {
@@ -78,10 +75,16 @@ func printStartMessage() error {
 	return nil
 }
 
-// func setupIntegration() error {
-// 	if err := integration.Setup(config.C); err != nil {
-// 		return errors.Wrap(err, "setup integration error")
-// 	}
+func setupAPI() error {
+	if err := api.Setup(&config.C); err != nil {
+		return fmt.Errorf("setup api error: %w", err)
+	}
+	return nil
+}
 
-// 	return nil
-// }
+func setupStorage() error {
+	if err := storage.Setup(&config.C); err != nil {
+		return fmt.Errorf("setup storage error: %w", err)
+	}
+	return nil
+}

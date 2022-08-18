@@ -3,7 +3,8 @@ module github.com/yurttasutkan/alarmservice
 go 1.18
 
 require (
-	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.11.7
+	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.11.8
+	github.com/lib/pq v1.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
@@ -12,10 +13,24 @@ require (
 )
 
 require (
+	github.com/aymanbagabas/go-osc52 v1.0.3 // indirect
+	github.com/charmbracelet/lipgloss v0.5.1-0.20220615005615-2e17a8a06096 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mattn/go-sqlite3 v1.14.10 // indirect
+	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
+	github.com/muesli/termenv v0.12.1-0.20220615005108-4e9068de9898 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+)
+
+require (
+	github.com/caarlos0/log v0.1.2
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

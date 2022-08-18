@@ -33,11 +33,10 @@ func init() {
 
 	// defaults
 	viper.SetDefault("general.grpc_default_resolver_scheme", "passthrough")
-	viper.SetDefault("general.password_hash_iterations", 100000)
-	viper.SetDefault("postgresql.dsn", "postgres://localhost/chirpstack_as?sslmode=disable")
+	viper.SetDefault("postgresql.dsn", "postgres://chirpstack_as:chirpstack_as@postgresql/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
-	viper.SetDefault("alarm_service.als_addr", "172.22.0.18")
+	viper.SetDefault("alarm_server.api.bind", "172.22.0.18:9000")
 	
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
@@ -62,10 +61,10 @@ func initConfig() {
 			log.WithError(err).WithField("config", cfgFile).Fatal("error loading config file")
 		}
 	} else {
-		viper.SetConfigName("alarm-service")
+		viper.SetConfigName("alarmservice")
 		viper.AddConfigPath(".")
-		viper.AddConfigPath("$HOME/.config/alarm-service")
-		viper.AddConfigPath("/etc/alarm-service")
+		viper.AddConfigPath("$HOME/.config/alarmservice")
+		viper.AddConfigPath("/etc/alarmservice")
 		if err := viper.ReadInConfig(); err != nil {
 			switch err.(type) {
 			case viper.ConfigFileNotFoundError:

@@ -4,9 +4,9 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/yurttasutkan/alarmservice/internal/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/yurttasutkan/alarmservice/internal/config"
 )
 
 const configTemplate = `[general]
@@ -66,6 +66,15 @@ const configTemplate = `[general]
   # This sets the max. number of idle connections in the PostgreSQL connection
   # pool (0 = no idle connections are retained).
   max_idle_connections={{ .PostgreSQL.MaxIdleConnections }}
+
+  # Alarm server settings.
+[alarm_server]
+
+  # Alarm server API settings.
+  [alarm_server.api]
+
+    # IP:Port to bind the Alarm server API to.
+    bind="{{ .AlarmServer.API.Bind }}"
   `
 
 var configCmd = &cobra.Command{

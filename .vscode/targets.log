@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Aug 18 10:10:34 2022
+# Make data base, printed on Fri Aug 19 08:34:29 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
+VSCODE_CWD = C:\Windows\system32
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_17900_QXBMCBKZDPIVVUQE
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_26640_HHWIODGRZLXDNXAH
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 17900
+VSCODE_PID = 26640
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -166,7 +166,8 @@ OS = Windows_NT
 .DEFAULT_GOAL := build
 # default
 MAKE_VERSION := 4.3
-# environment
+# envi 
+ronment
 PROGRAMFILES(X86) = C:\Program Files (x86)
 # environment
 USERDOMAIN_ROAMINGPROFILE = DESKTOP-56K59CH
@@ -299,7 +300,8 @@ serve: build
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=9/1024=1%, Rehash=0, Collisions=0/28=0%
+# Load=9/1024=1%, Rehash=0, Collisions=0/28= 
+0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
@@ -312,6 +314,6 @@ serve: build
 # strcache performance: lookups = 35 / hit rate = 40%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=0/35=0%
-# Finished Make data base on Thu Aug 18 10:10:34 2022
+# Finished Make data base on Fri Aug 19 08:34:29 2022
 
  

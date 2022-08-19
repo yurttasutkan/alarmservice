@@ -13,18 +13,18 @@ func Setup(conf *config.Config) error {
 	apiConf := conf.AlarmServer.API
 
 	log.WithFields(log.Fields{
-		"bind":     apiConf.Bind,
+		"bind": apiConf.Bind,
 	}).Info("api: starting alarm-server api server")
-	
+
 	grpcServer := grpc.NewServer()
 	alsAPI := NewAlarmServerAPI()
 	als.RegisterAlarmServerServiceServer(grpcServer, alsAPI)
-	lis, err := net.Listen("tcp", "172.22.0.18:9000")
+	lis, err := net.Listen("tcp", apiConf.Bind)
 	if err != nil {
 		log.Fatalf("Start api listener error: %v", err)
 	}
 
 	grpcServer.Serve(lis)
-	
+
 	return nil
 }

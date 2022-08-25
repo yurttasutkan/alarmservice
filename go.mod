@@ -3,7 +3,7 @@ module github.com/yurttasutkan/alarmservice
 go 1.18
 
 require (
-	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.20.0
+	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.20.4
 	github.com/lib/pq v1.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
@@ -30,7 +30,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jinzhu/copier v0.3.5
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

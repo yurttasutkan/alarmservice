@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Aug 19 08:34:29 2022
+# Make data base, printed on Thu Aug 25 08:23:42 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Windows\system32
+VSCODE_CWD = C:\Windows\System32
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_26640_HHWIODGRZLXDNXAH
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_26820_NZNECXKWZSIQFCER
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 26640
+VSCODE_PID = 26820
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -166,8 +166,7 @@ OS = Windows_NT
 .DEFAULT_GOAL := build
 # default
 MAKE_VERSION := 4.3
-# envi 
-ronment
+# environment
 PROGRAMFILES(X86) = C:\Program Files (x86)
 # environment
 USERDOMAIN_ROAMINGPROFILE = DESKTOP-56K59CH
@@ -314,6 +313,6 @@ serve: build
 # strcache performance: lookups = 35 / hit rate = 40%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=0/35=0%
-# Finished Make data base on Fri Aug 19 08:34:29 2022
+# Finished Make data base on Thu Aug 25 08:23:42 2022
 
  

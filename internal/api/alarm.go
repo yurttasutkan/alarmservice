@@ -3,10 +3,13 @@ package api
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
+	"github.com/jmoiron/sqlx"
 	"github.com/yurttasutkan/alarmservice/internal/storage"
 )
 
@@ -18,126 +21,6 @@ type AlarmServerAPI struct {
 func NewAlarmServerAPI() *AlarmServerAPI {
 	return &AlarmServerAPI{}
 }
-
-// SQL function to convert filters to SQL line
-func (f AlarmFilters) SQL() string {
-	var filters []string
-
-	if f.DevEui != "" {
-		filters = append(filters, fmt.Sprint(" dev_eui =  '", f.DevEui+"'"))
-	}
-	filters = append(filters, fmt.Sprint(" and user_id = ", f.UserID))
-	if f.Limit != 0 {
-		filters = append(filters, fmt.Sprint(" LIMIT ", f.Limit))
-	}
-
-	return " where is_active = true and  " + strings.Join(filters, " ")
-}
-
-// Implements the RPC method CreateAlarm.
-func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
-	db := storage.DB()
-	var al Alarm
-	var returnID int64
-	err := db.QueryRowx(`
-	insert into alarm_refactor (
-		dev_eui,
-		min_treshold,
-		max_treshold,
-		sms,
-		email,
-		temperature,
-		humadity,
-		ec,
-		door,
-		w_leak,
-		user_id,
-		is_time_limit_active,
-		alarm_start_time,
-		alarm_stop_time,
-		zone_category,
-		notification
-	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) returning id`,
-		alarm.Alarm.DevEui,
-		alarm.Alarm.MinTreshold,
-		alarm.Alarm.MaxTreshold,
-		alarm.Alarm.Sms,
-		alarm.Alarm.Email,
-		alarm.Alarm.Temperature,
-		alarm.Alarm.Humadity,
-		alarm.Alarm.Ec,
-		alarm.Alarm.Door,
-		alarm.Alarm.WLeak,
-		alarm.Alarm.UserID,
-		alarm.Alarm.IsTimeLimitActive,
-		alarm.Alarm.AlarmStartTime,
-		alarm.Alarm.AlarmStopTime,
-		alarm.Alarm.ZoneCategoryID,
-		alarm.Alarm.Notification,
-	).Scan(&returnID)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	resp := als.CreateAlarmResponse{
-		Alarm: &als.Alarm{
-			Id:                al.ID,
-			DevEui:            al.DevEui,
-			MinTreshold:       al.MinTreshold,
-			MaxTreshold:       al.MaxTreshold,
-			Sms:               al.Sms,
-			Email:             al.Email,
-			Notification:      al.Notification,
-			Temperature:       al.Temperature,
-			Humadity:          al.Humadity,
-			Ec:                al.Ec,
-			Door:              al.Door,
-			WLeak:             al.W_leak,
-			UserID:            al.UserId,
-			IpAddress:         al.IpAddress,
-			IsTimeLimitActive: al.IsTimeLimitActive,
-			AlarmStartTime:    al.AlarmStartTime,
-			AlarmStopTime:     al.AlarmStopTime,
-			ZoneCategoryID:    al.ZoneCategoryId,
-			IsActive:          al.IsActive,
-		},
-	}
-	return &resp, nil
-}
-
-func (a *AlarmServerAPI) GetAlarm(context.Context, *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
-	var resp *als.GetAlarmResponse
-	return resp, nil
-}
-
-// func (a *AlarmServerAPI) GetAlarm(context context.Context, req *als.GetAlarmRequest) (*als.GetAlarmResponse,error){
-// 	var al Alarm
-// 	db := storage.DB()
-// 	err := sqlx.Get(db, &al, "select * from alarm_refactor where id = $1 and is_active = true", req.AlarmID)
-// 	if err != nil {
-// 		log.Fatalf("Sqlx get error: %v", err)
-// 	}
-
-// 	resp := als.GetAlarmResponse{
-// 		Alarm: &als.Alarm{
-// 			Id:              al.ID,
-// 			DevEui:          al.DevEui,
-// 			MinTreshold:     al.MinTreshold,
-// 			MaxTreshold:     al.MaxTreshold,
-// 			Sms:             al.Sms,
-// 			Email:           al.Email,
-// 			Temperature:     al.Temperature,
-// 			Humadity:        al.Humadity,
-// 			Ec:              al.Ec,
-// 			Door:            al.Door,
-// 			WLeak:           al.W_leak,
-// 			IsTimeScheduled: al.IsTimeLimitActive,
-// 			StartTime:       al.AlarmStartTime,
-// 			EndTime:         al.AlarmStopTime,
-// 		},
-// 	}
-// 	return &resp,nil
-// }
 
 type Alarm struct {
 	ID                int64   `db:"id"`
@@ -209,6 +92,7 @@ type AlarmWithDates struct {
 	AlarmEndTime      float32 `db:"end_time"`
 	IsActive          bool    `db:"is_active"`
 }
+
 type AlarmDateFilter struct {
 	ID             int64   `db:"id"`
 	AlarmId        int64   `db:"alarm_id"`
@@ -255,3 +139,125 @@ type SMSRequestBody struct {
 	APIKey    string `json:"api_key"`
 	APISecret string `json:"api_secret"`
 }
+
+
+// SQL function to convert filters to SQL line
+func (f AlarmFilters) SQL() string {
+	var filters []string
+
+	if f.DevEui != "" {
+		filters = append(filters, fmt.Sprint(" dev_eui =  '", f.DevEui+"'"))
+	}
+	filters = append(filters, fmt.Sprint(" and user_id = ", f.UserID))
+	if f.Limit != 0 {
+		filters = append(filters, fmt.Sprint(" LIMIT ", f.Limit))
+	}
+
+	return " where is_active = true and  " + strings.Join(filters, " ")
+}
+
+// Implements the RPC method CreateAlarm.
+func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
+	db := storage.DB()
+	var returnID int64
+
+	al := alarm.Alarm
+	err := db.QueryRowx(`
+	insert into alarm_refactor (
+		dev_eui,
+		min_treshold,
+		max_treshold,
+		sms,
+		email,
+		temperature,
+		humadity,
+		ec,
+		door,
+		w_leak,
+		user_id,
+		is_time_limit_active,
+		alarm_start_time,
+		alarm_stop_time,
+		zone_category,
+		notification
+	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) returning id`,
+		al.DevEui,
+		al.MinTreshold,
+		al.MaxTreshold,
+		al.Sms,
+		al.Email,
+		al.Temperature,
+		al.Humadity,
+		al.Ec,
+		al.Door,
+		al.WLeak,
+		al.UserID,
+		al.IsTimeLimitActive,
+		al.AlarmStartTime,
+		al.AlarmStopTime,
+		al.ZoneCategoryID,
+		al.Notification,
+	).Scan(&returnID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	resp := als.CreateAlarmResponse{
+		Alarm: &als.Alarm{
+			Id:                al.Id,
+			DevEui:            al.DevEui,
+			MinTreshold:       al.MinTreshold,
+			MaxTreshold:       al.MaxTreshold,
+			Sms:               al.Sms,
+			Email:             al.Email,
+			Notification:      al.Notification,
+			Temperature:       al.Temperature,
+			Humadity:          al.Humadity,
+			Ec:                al.Ec,
+			Door:              al.Door,
+			WLeak:             al.WLeak,
+			UserID:            al.UserID,
+			IpAddress:         al.IpAddress,
+			IsTimeLimitActive: al.IsTimeLimitActive,
+			AlarmStartTime:    al.AlarmStartTime,
+			AlarmStopTime:     al.AlarmStopTime,
+			ZoneCategoryID:    al.ZoneCategoryID,
+			IsActive:          al.IsActive,
+		},
+	}
+	return &resp, nil
+}
+
+func (a *AlarmServerAPI) CreateColdRoomRestrictions(ctx context.Context, req *als.CreateColdRoomRestrictionsRequest) (*empty.Empty, error) {
+	db := storage.DB()
+	coldRes := req.ColdRes
+	_, err := db.Exec(`insert into cold_room_restrictions(
+		dev_eui,
+		alarm_id,
+		defronst_time,
+		defrost_frequency,
+		alarm_time
+	) values ($1, $2, $3, $4, $5)`, coldRes.DevEui, coldRes.AlarmID, coldRes.DefrostTime, coldRes.DefrostFrq, coldRes.AlarmTime)
+	if err != nil {
+		log.Fatalf("Insert error %v", err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// GetAlarm gets the alarm via alarmID given by GetAlarmRequest.
+func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
+	db := storage.DB()
+
+	var resp als.GetAlarmResponse
+
+	err := sqlx.Get(db, &resp.Alarm, "select * from alarm_refactor where id = $1 and is_active = true", alReq.AlarmID)
+	if err != nil {
+		log.Fatalf("GetAlarm error %v", err)
+	}
+	return &resp, nil
+}
+
+
+
+

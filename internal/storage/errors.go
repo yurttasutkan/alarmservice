@@ -44,7 +44,7 @@ var (
 	ErrAPIKeyInvalidName               = errors.New("invalid API Key name")
 )
 
-func handlePSQLError(action Action, err error, description string) error {
+func HandlePSQLError(action Action, err error, description string) error {
 	if err == sql.ErrNoRows {
 		return ErrDoesNotExist
 	}

@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Aug 25 08:23:42 2022
+# Make data base, printed on Fri Aug 26 08:28:42 2022
 
 # Variables
 
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_26820_NZNECXKWZSIQFCER
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_38248_UHESMJBQIKKVOGWD
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 26820
+VSCODE_PID = 38248
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -266,7 +266,8 @@ all:
 #  File has not been updated.
 
 build:
-#  Phony target (prerequisite of .PHONY).
+#  Phony target (prerequisite of .PHON 
+Y).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
@@ -299,8 +300,7 @@ serve: build
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=9/1024=1%, Rehash=0, Collisions=0/28= 
-0%
+# Load=9/1024=1%, Rehash=0, Collisions=0/28=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
@@ -313,6 +313,6 @@ serve: build
 # strcache performance: lookups = 35 / hit rate = 40%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=0/35=0%
-# Finished Make data base on Thu Aug 25 08:23:42 2022
+# Finished Make data base on Fri Aug 26 08:28:42 2022
 
  

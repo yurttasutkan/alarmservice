@@ -6,11 +6,13 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
-	"github.com/yurttasutkan/alarmservice/internal/storage"
+	s "github.com/yurttasutkan/alarmservice/internal/storage"
 )
 
+//Implements the RPC method CreateColdRoomRestrictions.
+//Inserts into cold_room_restrictions table with given parameters in the request.
 func (a *AlarmServerAPI) CreateColdRoomRestrictions(ctx context.Context, req *als.CreateColdRoomRestrictionsRequest) (*empty.Empty, error) {
-	db := storage.DB()
+	db := s.DB()
 	coldRes := req.ColdRes
 	_, err := db.Exec(`insert into cold_room_restrictions(
 		dev_eui,

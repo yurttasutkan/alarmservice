@@ -7,24 +7,27 @@ import (
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"github.com/yurttasutkan/alarmservice/internal/storage"
+	s "github.com/yurttasutkan/alarmservice/internal/storage"
 )
 
-// GetAlarm gets the alarm via alarmID given by GetAlarmRequest.
+//Implements the RPC method GetAlarm.
+//Request takes alarmID as field and returns Alarm as response.
 func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	var resp als.GetAlarmResponse
 
 	err := sqlx.Get(db, &resp.Alarm, "select * from alarm_refactor where id = $1 and is_active = true", alReq.AlarmID)
 	if err != nil {
-		return &als.GetAlarmResponse{Alarm: resp.Alarm}, storage.HandlePSQLError(storage.Select, err, "select error")
+		return &als.GetAlarmResponse{Alarm: resp.Alarm}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	return &resp, nil
 }
 
+//Implements the RPC method GetAlarmLogs.
+//Request takes DevEUI as field and returns []AlarmLogs as response.
 func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogsRequest) (*als.GetAlarmLogsResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	var logs []AlarmLogs
 	var result []*als.AlarmLogs
@@ -41,7 +44,7 @@ func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogs
 	door,
 	w_leak from alarm_change_logs where dev_eui = $1`, req.DevEui)
 	if err != nil {
-		return &als.GetAlarmLogsResponse{RespLog: result}, storage.HandlePSQLError(storage.Select, err, "select error")
+		return &als.GetAlarmLogsResponse{RespLog: result}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
 	for _, log := range logs {
@@ -62,21 +65,23 @@ func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogs
 		var err error
 		item.SubmissionDate, err = ptypes.TimestampProto(log.SubmissionDate)
 		if err != nil {
-			return &als.GetAlarmLogsResponse{RespLog: result}, storage.HandlePSQLError(storage.Select, err, "select error")
+			return &als.GetAlarmLogsResponse{RespLog: result}, s.HandlePSQLError(s.Select, err, "select error")
 		}
 		result = append(result, &item)
 	}
 	return &als.GetAlarmLogsResponse{RespLog: result}, nil
 }
 
+//Implements the RPC method GetAlarmDates.
+//Request takes alarmID as field and returns []AlarmDateTime as response.
 func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDatesRequest) (*als.GetAlarmDatesResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	var returnDates []*als.AlarmDateTime
 	var alarmDates []AlarmDateFilter
 	err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", req.AlarmId)
 	if err != nil {
-		return &als.GetAlarmDatesResponse{RespDate: returnDates}, storage.HandlePSQLError(storage.Select, err, "select error")
+		return &als.GetAlarmDatesResponse{RespDate: returnDates}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	for _, date := range alarmDates {
 		d := als.AlarmDateTime{
@@ -91,10 +96,11 @@ func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDat
 	return &als.GetAlarmDatesResponse{RespDate: returnDates}, nil
 }
 
+//Implements the RPC method GetAlarmList.
+//Request takes AlarmFilter as field and returns []Alarm as response.
 func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmListRequest) (*als.GetAlarmListResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
-	var returnDates []*als.AlarmDateTime
 	filters := AlarmFilters{
 		Limit:  int(req.Filter.Limit),
 		DevEui: req.Filter.DevEui,
@@ -111,24 +117,15 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	}
 	err = sqlx.Select(db, &alarms, query, args...)
 	if err != nil {
-		return &als.GetAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, storage.HandlePSQLError(storage.Select, err, "select error")
+		return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	for _, alarm := range alarms {
 		var alarmDates []AlarmDateFilter
 		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
-			return &als.GetAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, storage.HandlePSQLError(storage.Select, err, "select error")
+			return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 		}
-		for _, date := range alarmDates {
-			d := als.AlarmDateTime{
-				Id:             date.ID,
-				AlarmId:        date.AlarmId,
-				AlarmDay:       date.AlarmDay,
-				AlarmStartTime: date.AlarmStartTime,
-				AlarmEndTime:   date.AlarmEndTime,
-			}
-			returnDates = append(returnDates, &d)
-		}
+		
 		al := als.Alarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,
@@ -148,15 +145,16 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
-	return &als.GetAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, nil
+	return &als.GetAlarmListResponse{RespList: returnAlarms}, nil
 }
 
+//Implements the RPC method GetOrganizationAlarmList.
+//Request takes organizationID as field and returns []OrganizationAlarm as response.
 func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.GetOrganizationAlarmListRequest) (*als.GetOrganizationAlarmListResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	var returnAlarms []*als.OrganizationAlarm
 	var alarms []OrganizationAlarm
-	var returnDates []*als.AlarmDateTime
 	err := sqlx.Select(db, &alarms, `select u.username, z.zone_name, d.name as device_name, ar.*
 	from alarm_refactor as ar
 		inner join public.user as u on ar.user_id = u.id
@@ -165,25 +163,16 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 		inner join zone as z on  d.dev_eui::text = any(z.devices)
 		where ou.organization_id = $1 and ar.is_active = true;`, req.OrganizationID)
 	if err != nil {
-		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, storage.HandlePSQLError(storage.Select, err, "select error")
+		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	for _, alarm := range alarms {
 		var alarmDates []AlarmDateFilter
 
 		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
-			return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, storage.HandlePSQLError(storage.Select, err, "select error")
+			return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 		}
-		for _, date := range alarmDates {
-			d := als.AlarmDateTime{
-				Id:             date.ID,
-				AlarmId:        date.AlarmId,
-				AlarmDay:       date.AlarmDay,
-				AlarmStartTime: date.AlarmStartTime,
-				AlarmEndTime:   date.AlarmEndTime,
-			}
-			returnDates = append(returnDates, &d)
-		}
+		
 		al := als.OrganizationAlarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,
@@ -204,5 +193,5 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
-	return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms, RespDate: returnDates}, nil
+	return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, nil
 }

@@ -7,13 +7,14 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"github.com/pkg/errors"
-	"github.com/yurttasutkan/alarmservice/internal/storage"
+	s "github.com/yurttasutkan/alarmservice/internal/storage"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Implements the RPC method CreateAlarm.
+//Inserts into alarm_refactor with parameters given by request and returns the created Alarm as response.
 func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 	var returnID int64
 
 	al := alarm.Alarm
@@ -54,12 +55,12 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		al.Notification,
 	).Scan(&returnID)
 	if err != nil {
-		return nil, storage.HandlePSQLError(storage.Insert, err, "insert error")
+		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
 	resp := als.CreateAlarmResponse{
 		Alarm: &als.Alarm{
-			Id:                al.Id,
+			Id:                returnID,
 			DevEui:            al.DevEui,
 			MinTreshold:       al.MinTreshold,
 			MaxTreshold:       al.MaxTreshold,
@@ -82,8 +83,11 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	}
 	return &resp, nil
 }
+
+//Implements the RPC method CreateAlarmDates.
+//Inserts into alarm_date_time with parameters given by request and returns the created AlarmDateTime as response.
 func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAlarmDatesRequest) (*als.CreateAlarmDatesResponse, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	fmt.Println("create alarm date")
 	var returnDates []*als.AlarmDateTime
@@ -95,8 +99,9 @@ func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAl
 			err := db.QueryRowx(`insert into 
 			alarm_date_time(alarm_id, alarm_day, start_time, end_time) values ($1, $2, $3, $4) returning id`,
 				date.AlarmId, date.AlarmDay, date.AlarmStartTime, date.AlarmEndTime).Scan(&returnID)
+			fmt.Println("ReturnID date: ", returnID)
 			if err != nil {
-				return &als.CreateAlarmDatesResponse{RespDateTime: returnDates}, storage.HandlePSQLError(storage.Insert, err, "insert error")
+				return &als.CreateAlarmDatesResponse{RespDateTime: returnDates}, s.HandlePSQLError(s.Insert, err, "insert error")
 			}
 			createdDate := als.AlarmDateTime{
 				Id:             returnID,
@@ -111,8 +116,10 @@ func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAl
 	return &als.CreateAlarmDatesResponse{RespDateTime: returnDates}, nil
 }
 
+//Implements the RPC method CreateAlarmLog.
+//Inserts into alarm_change_logs with parameters given by request.
 func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlarmLogRequest) (*empty.Empty, error) {
-	db := storage.DB()
+	db := s.DB()
 	al := req.Alarm
 
 	fmt.Println("create alarm log")
@@ -132,14 +139,16 @@ func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlar
 		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) `, al.DevEui, al.MinTreshold,
 		al.MaxTreshold, req.UserID, req.IpAddress, req.IsDeleted, al.Sms, al.Temperature, al.Humadity, al.Ec, al.Door, al.WLeak)
 	if err != nil {
-		return &emptypb.Empty{}, storage.HandlePSQLError(storage.Insert, err, "insert error")
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
 	return &empty.Empty{}, nil
 }
 
+//Implements the RPC method UpdateAlarm.
+//Updates alarm_refactor table with the parameters given by request.
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
-	db := storage.DB()
+	db := s.DB()
 
 	alarm := req.Alarm
 	res, err := db.Exec(`update alarm_refactor 
@@ -160,7 +169,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	)
 
 	if err != nil {
-		return &emptypb.Empty{}, storage.HandlePSQLError(storage.Update, err, "update error")
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
 	if err != nil {
@@ -171,4 +180,35 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+func CreateNotification(notification s.Notification) error {
+	db := s.DB()
+	_, err := db.Exec(`insert into notifications(sender_id, 
+		receiver_id,
+		message,
+		category_id,
+		read_time,
+		deleted_time,
+		sender_ip,
+		reader_ip,
+		is_deleted,
+		device_name,
+		dev_eui) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		notification.SenderId,
+		notification.ReceiverId,
+		notification.Message,
+		notification.CategoryId,
+		notification.ReadTime,
+		notification.DeletedTime,
+		notification.SenderIp,
+		notification.ReaderIp,
+		notification.IsDeleted,
+		notification.DeviceName,
+		notification.DevEui)
+	if err != nil {
+		return s.HandlePSQLError(s.Insert, err, "insert error")
+	}
+
+	return nil
 }

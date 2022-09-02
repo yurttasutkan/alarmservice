@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Aug 26 08:28:42 2022
+# Make data base, printed on Fri Sep 02 14:08:03 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Windows\System32
+VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_38248_UHESMJBQIKKVOGWD
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_66072_RYHQAGELYESKABXM
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 38248
+VSCODE_PID = 66072
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -225,9 +225,9 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
 
 # Directories
 
-# . (key e:/staj/alarmservice, mtime 1660647751): 13 files, no impossibilities.
+# . (key e:/staj/alarmservice, mtime 1661929879): 12 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 12 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -266,8 +266,7 @@ all:
 #  File has not been updated.
 
 build:
-#  Phony target (prerequisite of .PHON 
-Y).
+#  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
@@ -307,12 +306,12 @@ serve: build
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 21 / storage = 156 B / avg = 7 B
-# current buf: size = 8174 B / used = 156 B / count = 21 / avg = 7 B
+# strcache buffers: 1 (0) / strings = 20 / storage = 148 B / avg = 7 B
+# current buf: size = 8174 B / used = 148 B / count = 20 / avg = 7 B
 
-# strcache performance: lookups = 35 / hit rate = 40%
+# strcache performance: lookups = 34 / hit rate = 41%
 # hash-table stats:
-# Load=21/8192=0%, Rehash=0, Collisions=0/35=0%
-# Finished Make data base on Fri Aug 26 08:28:42 2022
+# Load=20/8192=0%, Rehash=0, Collisions=0/34=0%
+# Finished Make data base on Fri Sep 02 14:08:03 2022
 
  

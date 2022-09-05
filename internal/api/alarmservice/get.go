@@ -1,4 +1,4 @@
-package alarm
+package alarmservice
 
 import (
 	"context"
@@ -28,9 +28,9 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 //Request takes DevEUI as field and returns []AlarmLogs as response.
 func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogsRequest) (*als.GetAlarmLogsResponse, error) {
 	db := s.DB()
-
-	var logs []AlarmLogs
+	var logs []s.AlarmLogs
 	var result []*als.AlarmLogs
+
 	err := sqlx.Select(db, &logs, `select dev_eui,min_treshold,
 	max_treshold,
 	user_id,
@@ -60,7 +60,7 @@ func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogs
 			Humadity:    log.Humadity,
 			Ec:          log.Ec,
 			Door:        log.Door,
-			WLeak:       log.W_leak,
+			WLeak:       log.WaterLeak,
 		}
 		var err error
 		item.SubmissionDate, err = ptypes.TimestampProto(log.SubmissionDate)
@@ -78,7 +78,8 @@ func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDat
 	db := s.DB()
 
 	var returnDates []*als.AlarmDateTime
-	var alarmDates []AlarmDateFilter
+	var alarmDates []s.AlarmDateFilter
+
 	err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", req.AlarmId)
 	if err != nil {
 		return &als.GetAlarmDatesResponse{RespDate: returnDates}, s.HandlePSQLError(s.Select, err, "select error")
@@ -101,13 +102,13 @@ func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDat
 func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmListRequest) (*als.GetAlarmListResponse, error) {
 	db := s.DB()
 
-	filters := AlarmFilters{
+	filters := s.AlarmFilters{
 		Limit:  int(req.Filter.Limit),
 		DevEui: req.Filter.DevEui,
 		UserID: req.Filter.UserID,
 	}
 	var returnAlarms []*als.Alarm
-	var alarms []Alarm
+	var alarms []s.Alarm
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 	select *
 	from alarm_refactor
@@ -120,12 +121,12 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 		return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	for _, alarm := range alarms {
-		var alarmDates []AlarmDateFilter
+		var alarmDates []s.AlarmDateFilter
 		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
 			return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 		}
-		
+
 		al := als.Alarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,
@@ -137,7 +138,7 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 			Humadity:          alarm.Humadity,
 			Ec:                alarm.Ec,
 			Door:              alarm.Door,
-			WLeak:             alarm.W_leak,
+			WLeak:             alarm.WaterLeak,
 			IsTimeLimitActive: alarm.IsTimeLimitActive,
 			AlarmStartTime:    alarm.AlarmStartTime,
 			AlarmStopTime:     alarm.AlarmStopTime,
@@ -154,7 +155,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	db := s.DB()
 
 	var returnAlarms []*als.OrganizationAlarm
-	var alarms []OrganizationAlarm
+	var alarms []s.OrganizationAlarm
 	err := sqlx.Select(db, &alarms, `select u.username, z.zone_name, d.name as device_name, ar.*
 	from alarm_refactor as ar
 		inner join public.user as u on ar.user_id = u.id
@@ -166,13 +167,13 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 	for _, alarm := range alarms {
-		var alarmDates []AlarmDateFilter
+		var alarmDates []s.AlarmDateFilter
 
 		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
 			return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 		}
-		
+
 		al := als.OrganizationAlarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,
@@ -184,7 +185,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			Humadity:          alarm.Humadity,
 			Ec:                alarm.Ec,
 			Door:              alarm.Door,
-			WLeak:             alarm.W_leak,
+			WLeak:             alarm.WaterLeak,
 			IsTimeLimitActive: alarm.IsTimeLimitActive,
 			Notification:      alarm.Notification,
 			DeviceName:        alarm.DeviceName,

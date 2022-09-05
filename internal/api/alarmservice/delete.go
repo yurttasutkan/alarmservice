@@ -1,4 +1,4 @@
-package alarm
+package alarmservice
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	var al Alarm
+	var al s.Alarm
 	err := sqlx.Get(db, &al, "select * from alarm_refactor where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")

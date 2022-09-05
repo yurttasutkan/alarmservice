@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/tiaguinho/gosoap"
 )
 
@@ -17,9 +18,12 @@ func (data OneToN) Send1N() (SendResult, error) {
 	fmt.Println(values)
 	req, err := http.PostForm(Url1N, values)
 	if err != nil {
-		// // panic(err.Error())
+		fmt.Println(err)
 	}
 	bodyBytes, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
 	response, _ := SmsResponse(string(bodyBytes))
 	return response, nil
 
@@ -29,9 +33,12 @@ func (data NToN) SendNN() (SendResult, error) {
 	values := PrepareXml(data)
 	req, err := http.PostForm(UrlNN, values)
 	if err != nil {
-		// // panic(err.Error())
+		fmt.Println(err)
 	}
 	bodyBytes, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
 	response, _ := SmsResponse(string(bodyBytes))
 	return response, nil
 }
@@ -98,16 +105,16 @@ func (data Report) GetReport() ([]ReportDetailResult, error) {
 
 	//err = xml.Unmarshal([]byte(reportDetailReturn), &reportDetailReturn)
 	if err != nil {
-		return reportDetails.Result, errors.New("Kayıt bulunamadı. ")
+		return reportDetails.Result, errors.New("kayıt bulunamadı. ")
 	}
 
 	if strings.Contains(reportDetailReturn.Return[0], "HATA:Kullanici bulunamadi") {
-		return reportDetails.Result, errors.New("Kullanıcı bulunamadı, kullanıcı bilgileri, rapor ID ve tarih bilgilerini doğru girmeye özen gösteriniz. ")
+		return reportDetails.Result, errors.New("kullanıcı bulunamadı, kullanıcı bilgileri, rapor ID ve tarih bilgilerini doğru girmeye özen gösteriniz. ")
 	}
 
 	err = xml.Unmarshal([]byte(reportDetailReturn.Return[0]), &reportDetails)
 	if err != nil {
-		return reportDetails.Result, errors.New("Kayıt bulunamadı. ")
+		return reportDetails.Result, errors.New("kayıt bulunamadı. ")
 	}
 
 	return reportDetails.Result, nil
@@ -132,7 +139,7 @@ func (data UserInfo) GetUser() (UserInfoResult, error) {
 
 	res, err := soap.Call("UyeBilgisiSorgula", params)
 	if err != nil {
-		return user, errors.New("Soap çağrısı yapılamadı. " + err.Error())
+		return user, errors.New("soap çağrısı yapılamadı. " + err.Error())
 	}
 
 	userInfo := struct {
@@ -142,11 +149,11 @@ func (data UserInfo) GetUser() (UserInfoResult, error) {
 
 	err = res.Unmarshal(&userInfo)
 	if err != nil {
-		return user, errors.New("Kayıt bulunamadı. ")
+		return user, errors.New("kayıt bulunamadı. ")
 	}
 
 	if strings.Contains(userInfo.Return[0], "Kullanici bulunamadi") {
-		return user, errors.New("Kullanıcı bulunamadı, kullanıcı bilgilerini kontrol ediniz. ")
+		return user, errors.New("kullanıcı bulunamadı, kullanıcı bilgilerini kontrol ediniz. ")
 	}
 
 	splitBr := strings.Split(userInfo.Return[0], "<br>")

@@ -27,30 +27,5 @@ func SendEmail(receiver string, textmessage string) {
 		fmt.Print("sent")
 	}
 
-	// // Sender data.
-	// from := "alarm@vaps.com.tr"
-	// password := "Letirev01*Veritel"
-
-	// // Receiver email address.
-	// to := receivers
-
-	// // smtp server configuration.
-	// smtpHost := "mail.vaps.com.tr"
-	// smtpPort := "587"
-
-	// // Message.
-	// message := []byte(textmessage)
-
-	// // Authentication.
-	// auth := smtp.PlainAuth("", from, password, smtpHost)
-
-	// // Sending email.
-	// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-	// if err != nil {
-
-	// 	fmt.Println()
-	// 	fmt.Println(err)
-	// 	return
-	// }
 	fmt.Println("Email Sent Successfully!")
 }

@@ -1,8 +1,7 @@
-package alarm
+package alarmservice
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
@@ -81,6 +80,9 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			IsActive:          al.IsActive,
 		},
 	}
+
+	s.CreateAlarmLog(context, db, resp.Alarm, resp.Alarm.UserID, resp.Alarm.IpAddress, 1)
+
 	return &resp, nil
 }
 
@@ -89,7 +91,6 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAlarmDatesRequest) (*als.CreateAlarmDatesResponse, error) {
 	db := s.DB()
 
-	fmt.Println("create alarm date")
 	var returnDates []*als.AlarmDateTime
 
 	if len(req.ReqFilter) > 0 {
@@ -99,7 +100,7 @@ func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAl
 			err := db.QueryRowx(`insert into 
 			alarm_date_time(alarm_id, alarm_day, start_time, end_time) values ($1, $2, $3, $4) returning id`,
 				date.AlarmId, date.AlarmDay, date.AlarmStartTime, date.AlarmEndTime).Scan(&returnID)
-			fmt.Println("ReturnID date: ", returnID)
+
 			if err != nil {
 				return &als.CreateAlarmDatesResponse{RespDateTime: returnDates}, s.HandlePSQLError(s.Insert, err, "insert error")
 			}
@@ -122,7 +123,6 @@ func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlar
 	db := s.DB()
 	al := req.Alarm
 
-	fmt.Println("create alarm log")
 	_, err := db.Exec(`insert into alarm_change_logs(
 		dev_eui,
 		min_treshold,
@@ -180,35 +180,4 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	}
 
 	return &emptypb.Empty{}, nil
-}
-
-func CreateNotification(notification s.Notification) error {
-	db := s.DB()
-	_, err := db.Exec(`insert into notifications(sender_id, 
-		receiver_id,
-		message,
-		category_id,
-		read_time,
-		deleted_time,
-		sender_ip,
-		reader_ip,
-		is_deleted,
-		device_name,
-		dev_eui) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		notification.SenderId,
-		notification.ReceiverId,
-		notification.Message,
-		notification.CategoryId,
-		notification.ReadTime,
-		notification.DeletedTime,
-		notification.SenderIp,
-		notification.ReaderIp,
-		notification.IsDeleted,
-		notification.DeviceName,
-		notification.DevEui)
-	if err != nil {
-		return s.HandlePSQLError(s.Insert, err, "insert error")
-	}
-
-	return nil
 }

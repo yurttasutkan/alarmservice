@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/xml"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -10,7 +11,7 @@ import (
 func PrepareXml(data interface{}) url.Values {
 	xmlData, err := xml.Marshal(data)
 	if err != nil {
-		// // panic(err.Error())
+		fmt.Println(err)
 	}
 	xmlString := string(xmlData)
 	values := url.Values{}

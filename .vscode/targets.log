@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Sep 02 14:08:03 2022
+# Make data base, printed on Mon Sep 05 08:49:42 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
+VSCODE_CWD = C:\Windows\System32
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_66072_RYHQAGELYESKABXM
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_17312_ZAJZWSKBBYBYURPS
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 66072
+VSCODE_PID = 17312
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -125,7 +125,8 @@ MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = C:\Program Files\Java\jdk-13\bin;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\MATLAB\R2019b\bin;C:\Program Files (x86)\ZeroTier\One\;C:\Program Files\Git\cmd;C:\Program Files\Go\bin;C:\Program Files\PuTTY\;C:\ProgramData\chocolatey\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\Utkan\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\Utkan\AppData\Local\Programs\Python\Python310\;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Utkan\AppData\Local\Microsoft\WindowsApps;C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files\Java\jdk-13\bin;C:\Program Files (x86)\Java\jre1.8.0_221\bin;C:\src\flutter\bin;C:\Users\Utkan\AppData\Local\Android\Sdk;C:\Users\Utkan\AppData\Local\GitHubDesktop\bin;C:\Users\Utkan\go\bin;C:\Users\Utkan\go\pkg\mod\google.golang.org\protobuf@v1.28.0\cmd\protoc-gen-go;
+PATH = C:\Program Files\Java\jdk-13\bin;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\MATLAB\R2019b\bin;C:\Program Files (x86)\ZeroTier\One\;C:\Program Files\Git\cmd;C:\Program Files\Go\bin;C:\Program Files\PuTTY\;C:\ProgramData\chocolatey\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\Utkan\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\Utkan\AppData\Local\Programs\Python\Python310\;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Utkan\AppData\Local\Microsoft\WindowsApps;C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files\Java\jdk-13\bin;C:\Program Files (x86)\Java\jre1.8.0_221\bin;C:\src\flutter\bin;C: 
+\Users\Utkan\AppData\Local\Android\Sdk;C:\Users\Utkan\AppData\Local\GitHubDesktop\bin;C:\Users\Utkan\go\bin;C:\Users\Utkan\go\pkg\mod\google.golang.org\protobuf@v1.28.0\cmd\protoc-gen-go;
 # environment
 ZES_ENABLE_SYSMAN = 1
 # environment
@@ -312,6 +313,6 @@ serve: build
 # strcache performance: lookups = 34 / hit rate = 41%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/34=0%
-# Finished Make data base on Fri Sep 02 14:08:03 2022
+# Finished Make data base on Mon Sep 05 08:49:42 2022
 
  

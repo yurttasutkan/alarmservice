@@ -495,7 +495,7 @@ func CheckAlarmTimeSchedule(a AlarmWithDates, v float32, deviceName string, zone
 			}
 		} else {
 			if a.AlarmStartTime < float32(t) && float32(t) < 24 {
-				CheckThreshold(a, v, deviceName,  zoneName, alarmType, date, db)
+				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
 			}
 			if 0 < float32(t) && float32(t) < a.AlarmEndTime {
 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
@@ -528,36 +528,26 @@ func CheckThreshold(a AlarmWithDates, v float32, deviceName string, zoneName str
 					return HandlePSQLError(Select, err, "alarm log insert error")
 				}
 			}
-
+			break
 		case 0:
 			err := ExecuteAlarm(a, v, deviceName, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
-
+			break
 		case 2:
 			err := ExecuteAlarm(a, v, deviceName, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
+			break
 		default:
-
 			err := ExecuteAlarm(a, v, deviceName, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
+			break
 		}
-
-	} else {
-		switch a.ZoneCategoryId {
-		case 1:
-			_, err := db.Exec(`update cold_room_restrictions set alarm_time = 0 where alarm_id = $1`, a.ID)
-			if err != nil {
-				return HandlePSQLError(Select, err, "alarm log insert error")
-			}
-		default:
-		}
-
 	}
 	return nil
 }

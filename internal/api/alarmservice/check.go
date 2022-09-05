@@ -18,11 +18,9 @@ import (
 func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	var zoneName string
+	// var zoneName string
 	currentTime := time.Now().Add(time.Hour * 3)
 
-
-	
 	var alarms []s.AlarmWithDates
 	weekday := time.Now().Weekday() + 1
 
@@ -33,10 +31,10 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	err = sqlx.Get(db, &zoneName, "select zone_name from zone where '\\x' || $1 = any(zone.devices)", req.Device.DevEui)
-	if err != nil {
-		fmt.Println("get zone name error")
-	}
+	// err = sqlx.Get(db, &zoneName, "select zone_name from zone where '\\x' || $1 = any(zone.devices)", req.Device.DevEui)
+	// if err != nil {
+	// 	fmt.Println("get zone name error")
+	// }
 
 	switch req.Device.DeviceType {
 	case 1:
@@ -49,7 +47,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				if err != nil {
 					fmt.Println("parse error")
 				}
-				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, zoneName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
+				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
 				if err != nil {
 					log.Println("CheckAlarmTimeSchedule error")
 				}
@@ -58,7 +56,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				if err != nil {
 					fmt.Println("parse error")
 				}
-				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, zoneName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
+				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
 				if err != nil {
 					log.Println("CheckAlarmTimeSchedule error")
 				}
@@ -75,7 +73,14 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 					if err != nil {
 						fmt.Println("parse error")
 					}
-					err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, zoneName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
+					/** Hrepdsini aynı formatata yapalım.
+					parametre isimlerini düzeltelim,
+					device name değil device obj alalım
+					*/
+					if s.CheckAlarmTime(element) {
+						s.CheckThreshold(element, float32(temp))
+					}
+					err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
 					if err != nil {
 						log.Println("s.s.CheckAlarmTimeSchedule error")
 					}
@@ -84,12 +89,12 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 					if err != nil {
 						fmt.Println("parse error")
 					}
-					err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, zoneName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
+					err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
 					if err != nil {
 						log.Println("s.s.CheckAlarmTimeSchedule error")
 					}
 				} else if element.Ec {
-					err = s.CheckAlarmTimeSchedule(element, float32(data.ConductSoil), req.DeviceName, zoneName, "ec", currentTime.Format("2006-01-02 15:04:05"), db)
+					err = s.CheckAlarmTimeSchedule(element, float32(data.ConductSoil), req.DeviceName, "ec", currentTime.Format("2006-01-02 15:04:05"), db)
 					if err != nil {
 						log.Println("s.s.CheckAlarmTimeSchedule error")
 					}
@@ -104,7 +109,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			if element.Door {
 				if data.DoorStatus == 1 {
 					if s.CheckAlarmTime(element) {
-						err = s.DoorAlarm(element, req.DeviceName, zoneName, "kapı", currentTime.Format("2006-01-02 15:04:05"))
+						err = s.DoorAlarm(element, req.DeviceName, "kapı", currentTime.Format("2006-01-02 15:04:05"))
 						if err != nil {
 							log.Println("doorAlarm error")
 						}
@@ -121,7 +126,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			if element.WaterLeak {
 				if data.WaterStatus == 1 {
 					if s.CheckAlarmTime(element) {
-						err = s.WaterLeakAlarm(element, req.DeviceName, zoneName)
+						err = s.WaterLeakAlarm(element, req.DeviceName)
 						if err != nil {
 							log.Println("waterLeakAlarm error")
 						}
@@ -138,7 +143,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			if element.WaterLeak {
 				if data.WaterStatus == 1 {
 					if s.CheckAlarmTime(element) {
-						err = s.EmergencyAlarm(element, req.DeviceName, zoneName)
+						err = s.EmergencyAlarm(element, req.DeviceName)
 						if err != nil {
 							log.Println("emergencyAlarm error")
 						}
@@ -154,12 +159,12 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			for _, element := range alarms {
 
 				if element.Temperature {
-					err = s.CheckAlarmTimeSchedule(element, float32(data.Temperature), req.DeviceName, zoneName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
+					err = s.CheckAlarmTimeSchedule(element, float32(data.Temperature), req.DeviceName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
 					if err != nil {
 						log.Println("s.CheckAlarmTimeSchedule error")
 					}
 				} else if element.Humadity {
-					err = s.CheckAlarmTimeSchedule(element, float32(data.Humidity), req.DeviceName, zoneName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
+					err = s.CheckAlarmTimeSchedule(element, float32(data.Humidity), req.DeviceName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
 					if err != nil {
 						log.Println("s.CheckAlarmTimeSchedule error")
 					}
@@ -175,7 +180,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			if element.WaterLeak {
 				if data.Alarm == 1 {
 					if s.CheckAlarmTime(element) {
-						err = s.AlarmButton(element, req.DeviceName, zoneName)
+						err = s.AlarmButton(element, req.DeviceName)
 						if err != nil {
 							log.Println("alarmButton error")
 						}
@@ -192,7 +197,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 			if element.WaterLeak {
 				if data.WaterLeek == 1 {
 					if s.CheckAlarmTime(element) {
-						err = s.WaterLeakAlarm(element, req.DeviceName, zoneName)
+						err = s.WaterLeakAlarm(element, req.DeviceName)
 						if err != nil {
 							log.Println("waterLeakAlarm error")
 						}

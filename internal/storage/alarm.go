@@ -294,32 +294,6 @@ func CreateNotification(notification Notification) error {
 	return nil
 }
 
-// func CheckAlarmTimeSchedule(a AlarmWithDates, v float32, deviceName string, zoneName string, alarmType string, date string, db sqlx.Ext) error {
-// 	if a.IsTimeLimitActive {
-// 		hours, minutes, _ := time.Now().Clock()
-// 		result := strconv.Itoa(hours+3) + "." + strconv.Itoa(minutes)
-// 		t, err := strconv.ParseFloat(result, 32)
-// 		if err != nil {
-// 			log.Printf("Error: %v\n", err)
-// 		}
-// 		if a.AlarmEndTime > a.AlarmStartTime {
-// 			if a.AlarmStartTime < float32(t) && float32(t) < a.AlarmEndTime {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 		} else {
-// 			if a.AlarmStartTime < float32(t) && float32(t) < 24 {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 			if 0 < float32(t) && float32(t) < a.AlarmEndTime {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 		}
-// 	} else {
-// 		CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 	}
-// 	return nil
-// }
-
 func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, alarmType string, date string, db sqlx.Ext) error {
 	if dataValue < alarm.MinTreshold || dataValue > alarm.MaxTreshold {
 		switch alarm.ZoneCategoryId {
@@ -334,7 +308,7 @@ func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, 
 				if err != nil {
 					return HandlePSQLError(Select, err, "alarm log insert error")
 				}
-				ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+				ExecuteAlarm(alarm, dataValue, device.Name, alarmType, date, db)
 			} else {
 				_, err := db.Exec(`update cold_room_restrictions set alarm_time = alarm_time +1 where alarm_id = $1`, alarm.ID)
 				if err != nil {
@@ -343,19 +317,19 @@ func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, 
 			}
 			break
 		case 0:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, dataValue, device.Name,  alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		case 2:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, dataValue, device.Name, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		default:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, dataValue, device.Name, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}

@@ -59,7 +59,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				}
 			}
 		}
-
+		break
 	case 2:
 		data := s.LSE01JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -95,7 +95,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 
 			}
 		}
-
+		break
 	case 3:
 		data := s.LDS01JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -111,7 +111,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				}
 			}
 		}
-
+		break
 	case 4:
 		data := s.LWL01JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -128,7 +128,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				}
 			}
 		}
-
+		break
 	case 10:
 		data := s.LWL01JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -145,7 +145,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				}
 			}
 		}
-
+		break
 	case 12:
 		data := s.EM300THJSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -167,6 +167,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 
 			}
 		}
+		break
 	case 14:
 		data := s.WS101JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -185,6 +186,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 
 			}
 		}
+		break
 	case 18:
 		data := s.EM300ZLDJSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
@@ -201,6 +203,24 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 				}
 			}
 		}
+		break
+	case 19:
+		data := s.EM300ZLDJSON{}
+		json.Unmarshal([]byte(req.ObjectJSON), &data)
+
+		for _, element := range alarms {
+			if element.WaterLeak {
+				if data.WaterLeek == 1 {
+					if s.CheckAlarmTime(element) {
+						err = s.ExecuteAlarm(element, 0, *req.Device, "kacak", currentTime.Format("2006-01-02 15:04:05"), db)
+						if err != nil {
+							log.Println("waterLeakAlarm error")
+						}
+					}
+				}
+			}
+		}
+		break
 	}
 
 	return &emptypb.Empty{}, nil

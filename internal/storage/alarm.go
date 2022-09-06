@@ -320,8 +320,8 @@ func CreateNotification(notification Notification) error {
 // 	return nil
 // }
 
-func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, alarmType string, date string, db sqlx.Ext) error {
-	if dataValue < alarm.MinTreshold || dataValue > alarm.MaxTreshold {
+func CheckThreshold(alarm AlarmWithDates, data float32, device als.Device, alarmType string, date string, db sqlx.Ext) error {
+	if data < alarm.MinTreshold || data > alarm.MaxTreshold {
 		switch alarm.ZoneCategoryId {
 		case 1:
 			var coldRoom ColdRoomRestrictions
@@ -334,7 +334,7 @@ func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, 
 				if err != nil {
 					return HandlePSQLError(Select, err, "alarm log insert error")
 				}
-				ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+				ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
 			} else {
 				_, err := db.Exec(`update cold_room_restrictions set alarm_time = alarm_time +1 where alarm_id = $1`, alarm.ID)
 				if err != nil {
@@ -343,19 +343,19 @@ func CheckThreshold(alarm AlarmWithDates, dataValue float32, device als.Device, 
 			}
 			break
 		case 0:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		case 2:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		default:
-			err := ExecuteAlarm(alarm, dataValue, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}

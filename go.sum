@@ -153,6 +153,8 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ibrahimozekici/chirpstack-api/go/v5 v5.21.2 h1:zgC9nhhqYEaozHEFC4O3Vj3uYyqTUgrYFbZnMb7Yf80=
 github.com/ibrahimozekici/chirpstack-api/go/v5 v5.21.2/go.mod h1:YV5W6IlKd0+B0ay+MQZm9WxCkk884xJviwvKkd/Ltuk=
+github.com/ibrahimozekici/chirpstack-api/go/v5 v5.21.4 h1:691QlHXaCAcydxFh6qprQxH8PdB1dYMdIL9J3bXlUTg=
+github.com/ibrahimozekici/chirpstack-api/go/v5 v5.21.4/go.mod h1:YV5W6IlKd0+B0ay+MQZm9WxCkk884xJviwvKkd/Ltuk=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/inconshreveable/mousetrap v1.0.1 h1:U3uMjPSQEBMNp1lFxmllqCPM6P5u/Xq7Pgzkat/bFNc=
 github.com/inconshreveable/mousetrap v1.0.1/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=

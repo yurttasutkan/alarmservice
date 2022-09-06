@@ -18,7 +18,6 @@ import (
 func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	// var zoneName string
 	currentTime := time.Now().Add(time.Hour * 3)
 
 	var alarms []s.AlarmWithDates
@@ -30,11 +29,6 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-
-	// err = sqlx.Get(db, &zoneName, "select zone_name from zone where '\\x' || $1 = any(zone.devices)", req.Device.DevEui)
-	// if err != nil {
-	// 	fmt.Println("get zone name error")
-	// }
 
 	switch req.Device.DeviceType {
 	case 1:

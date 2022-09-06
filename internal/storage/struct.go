@@ -9,18 +9,6 @@ import (
 	"github.com/lib/pq/hstore"
 )
 
-type Application struct {
-	ID                   int64     `db:"id"`
-	Name                 string    `db:"name"`
-	Description          string    `db:"description"`
-	OrganizationID       int64     `db:"organization_id"`
-	ServiceProfileID     uuid.UUID `db:"service_profile_id"`
-	PayloadCodec         string    `db:"payload_codec"`
-	PayloadEncoderScript string    `db:"payload_encoder_script"`
-	PayloadDecoderScript string    `db:"payload_decoder_script"`
-	MQTTTLSCert          []byte    `db:"mqtt_tls_cert"`
-}
-
 type Device struct {
 	DevEUI                    lorawan.EUI64     `db:"dev_eui"`
 	CreatedAt                 time.Time         `db:"created_at"`

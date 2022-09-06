@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// Checks the type of Alarm
 func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
@@ -23,6 +24,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 	var alarms []s.AlarmWithDates
 	weekday := time.Now().Weekday() + 1
 
+	// Select Alarms by Device DevEUI
 	err := sqlx.Select(db, &alarms, `select alrm.*, alrmDate.alarm_day, alrmDate.start_time, alrmDate.end_time  from alarm_refactor as alrm 
 	inner join alarm_date_time alrmDate on alrm.id = alrmDate.alarm_id where dev_eui = $1
 	and ( alrmDate.alarm_day = 0 or alrmDate.alarm_day = $2 ) and is_active = true`, req.Device.DevEui, int(weekday))
@@ -35,6 +37,7 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 		data := s.LSN50V2JSON{}
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
 
+		// Check for each alarm
 		for _, element := range alarms {
 			if s.CheckAlarmTime(element) {
 				if element.Temperature {

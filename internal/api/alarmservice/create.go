@@ -57,6 +57,10 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
+	if alarm.Alarm.ZoneCategoryID ==1{
+		err := s.CreateColdRoomRestrictions(al,)
+	}
+
 	resp := als.CreateAlarmResponse{
 		Alarm: &als.Alarm{
 			Id:                returnID,

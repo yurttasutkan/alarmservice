@@ -16,6 +16,7 @@ import (
 func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
 	db := s.DB()
 	var returnID int64
+	var alarmDates []s.AlarmDateFilter
 
 	al := alarm.Alarm
 	err := db.QueryRowx(`
@@ -66,6 +67,21 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		}
 	}
 
+	for _, alarmDateTime := range al.AlarmDateTime {
+		dt := s.AlarmDateFilter{
+			AlarmId:        returnID,
+			AlarmDay:       alarmDateTime.AlarmDay,
+			AlarmStartTime: alarmDateTime.AlarmStartTime,
+			AlarmEndTime:   alarmDateTime.AlarmEndTime,
+		}
+		alarmDates = append(alarmDates, dt)
+	}
+
+	dates, err := s.CreateAlarmDates(db, alarmDates)
+	if err != nil {
+		log.Println(err)
+	}
+
 	resp := als.CreateAlarmResponse{
 		Alarm: &als.Alarm{
 			Id:                returnID,
@@ -87,6 +103,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			AlarmStopTime:     al.AlarmStopTime,
 			ZoneCategoryID:    al.ZoneCategoryID,
 			IsActive:          al.IsActive,
+			AlarmDateTime:     dates,
 		},
 	}
 

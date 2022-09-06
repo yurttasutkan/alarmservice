@@ -3,13 +3,14 @@ package storage
 import (
 	"fmt"
 
+	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"github.com/jmoiron/sqlx"
 )
 
-func CreateAlarmDates(db sqlx.Queryer, alarmDates []AlarmDateFilter) ([]AlarmDateFilter, error) {
+func CreateAlarmDates(db sqlx.Queryer, alarmDates []AlarmDateFilter) ([]*als.AlarmDateTime, error) {
 	fmt.Println("create alarm date")
 
-	var returnDates []AlarmDateFilter
+	var returnDates []*als.AlarmDateTime
 
 	if len(alarmDates) > 0 {
 		for _, date := range alarmDates {
@@ -21,14 +22,14 @@ func CreateAlarmDates(db sqlx.Queryer, alarmDates []AlarmDateFilter) ([]AlarmDat
 			if err != nil {
 				return returnDates, HandlePSQLError(Insert, nil, "insert error")
 			}
-			createdDate := AlarmDateFilter{
-				ID:             returnID,
+			createdDate := als.AlarmDateTime{
+				Id:             returnID,
 				AlarmId:        date.AlarmId,
 				AlarmDay:       date.AlarmDay,
 				AlarmStartTime: date.AlarmStartTime,
 				AlarmEndTime:   date.AlarmEndTime,
 			}
-			returnDates = append(returnDates, createdDate)
+			returnDates = append(returnDates, &createdDate)
 		}
 	}
 

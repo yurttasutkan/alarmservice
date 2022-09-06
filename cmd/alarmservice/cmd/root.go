@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
 	"github.com/spf13/viper"
 	"github.com/yurttasutkan/alarmservice/internal/config"
 
@@ -37,7 +38,7 @@ func init() {
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
 	viper.SetDefault("alarm_server.api.bind", "172.22.0.18:9000")
-	
+
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
 }

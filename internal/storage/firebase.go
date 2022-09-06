@@ -110,8 +110,6 @@ func SendFirebaseNotification(u User, f FirebaseNotificationData) error {
 		if err != nil {
 			fmt.Println("json marshal error")
 		}
-		fmt.Println("JSOOON")
-		fmt.Println(bytes.NewBuffer(json0))
 
 		reqOne, err := http.NewRequest("POST", "https://onesignal.com/api/v1/notifications", bytes.NewBuffer(json0))
 		reqOne.Header.Set("Authorization", OneSignalAythKey)

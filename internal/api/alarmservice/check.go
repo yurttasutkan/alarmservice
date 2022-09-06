@@ -20,7 +20,6 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 	db := s.DB()
 
 	currentTime := time.Now().Add(time.Hour * 3)
-
 	var alarms []s.AlarmWithDates
 	weekday := time.Now().Weekday() + 1
 

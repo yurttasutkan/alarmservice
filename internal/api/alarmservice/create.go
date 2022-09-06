@@ -144,6 +144,7 @@ func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlar
 // Updates alarm_refactor table with the parameters given by request.
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
+	var alarmDates []s.AlarmDateFilter
 
 	alarm := req.Alarm
 	res, err := db.Exec(`update alarm_refactor 
@@ -162,6 +163,21 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.IsTimeLimitActive,
 		req.AlarmID,
 	)
+
+	for _, alarmDateTime := range req.Alarm.AlarmDateTime {
+		dt := s.AlarmDateFilter{
+			AlarmId:        alarmDateTime.AlarmId,
+			AlarmDay:       alarmDateTime.AlarmDay,
+			AlarmStartTime: alarmDateTime.AlarmStartTime,
+			AlarmEndTime:   alarmDateTime.AlarmEndTime,
+		}
+		alarmDates = append(alarmDates, dt)
+	}
+
+	_, err = s.CreateAlarmDates(db, alarmDates)
+	if err != nil {
+		log.Println(err)
+	}
 
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Update, err, "update error")

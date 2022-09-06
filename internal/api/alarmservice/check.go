@@ -36,23 +36,25 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
 
 		for _, element := range alarms {
-			if element.Temperature {
-				temp, err := strconv.ParseFloat(data.Temperature, 32)
-				if err != nil {
-					fmt.Println("parse error")
-				}
-				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
-				if err != nil {
-					log.Println("CheckAlarmTimeSchedule error")
-				}
-			} else if element.Humadity {
-				temp, err := strconv.ParseFloat(data.Humidity, 32)
-				if err != nil {
-					fmt.Println("parse error")
-				}
-				err = s.CheckAlarmTimeSchedule(element, float32(temp), req.DeviceName, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
-				if err != nil {
-					log.Println("CheckAlarmTimeSchedule error")
+			if s.CheckAlarmTime(element) {
+				if element.Temperature {
+					temp, err := strconv.ParseFloat(data.Temperature, 32)
+					if err != nil {
+						fmt.Println("parse error")
+					}
+					err = s.CheckThreshold(element, float32(temp), *req.Device, "ısı", currentTime.Format("2006-01-02 15:04:05"), db)
+					if err != nil {
+						log.Println("CheckAlarmTimeSchedule error")
+					}
+				} else if element.Humadity {
+					temp, err := strconv.ParseFloat(data.Humidity, 32)
+					if err != nil {
+						fmt.Println("parse error")
+					}
+					err = s.CheckThreshold(element, float32(temp), *req.Device, "nem", currentTime.Format("2006-01-02 15:04:05"), db)
+					if err != nil {
+						log.Println("CheckAlarmTimeSchedule error")
+					}
 				}
 			}
 		}

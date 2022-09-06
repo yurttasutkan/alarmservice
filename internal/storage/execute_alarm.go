@@ -32,6 +32,8 @@ func ExecuteAlarm(a AlarmWithDates, v float32, deviceName string, zoneName strin
 	if err != nil {
 		log.Println("CreateNotification Error")
 	}
+
+	// Check what kind of alarm it is going to send
 	if a.Sms {
 		numbers := []string{u.PhoneNumber}
 		numbersString := NumbersArrayToString(numbers)

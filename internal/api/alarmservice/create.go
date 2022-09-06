@@ -95,15 +95,6 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	return &resp, nil
 }
 
-<<<<<<< Updated upstream
-// Implements the RPC method CreateAlarmDates.
-// Inserts into alarm_date_time with parameters given by request and returns the created AlarmDateTime as response.
-func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAlarmDatesRequest) (*als.CreateAlarmDatesResponse, error) {
-	db := s.DB()
-=======
->>>>>>> Stashed changes
-
-
 // Implements the RPC method CreateAlarmLog.
 // Inserts into alarm_change_logs with parameters given by request.
 func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlarmLogRequest) (*empty.Empty, error) {

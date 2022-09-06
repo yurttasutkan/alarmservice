@@ -11,7 +11,7 @@ import (
 )
 
 // Implements the RPC method CreateAlarm.
-//Inserts into alarm_refactor with parameters given by request and returns the created Alarm as response.
+// Inserts into alarm_refactor with parameters given by request and returns the created Alarm as response.
 func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
 	db := s.DB()
 	var returnID int64
@@ -57,8 +57,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
-	if alarm.Alarm.ZoneCategoryID ==1{
-		err := s.CreateColdRoomRestrictions(al,)
+	if alarm.Alarm.ZoneCategoryID == 1 {
+		err := s.CreateColdRoomRestrictions(al)
 	}
 
 	resp := als.CreateAlarmResponse{
@@ -90,8 +90,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	return &resp, nil
 }
 
-//Implements the RPC method CreateAlarmDates.
-//Inserts into alarm_date_time with parameters given by request and returns the created AlarmDateTime as response.
+// Implements the RPC method CreateAlarmDates.
+// Inserts into alarm_date_time with parameters given by request and returns the created AlarmDateTime as response.
 func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAlarmDatesRequest) (*als.CreateAlarmDatesResponse, error) {
 	db := s.DB()
 
@@ -121,8 +121,8 @@ func (a *AlarmServerAPI) CreateAlarmDates(ctx context.Context, req *als.CreateAl
 	return &als.CreateAlarmDatesResponse{RespDateTime: returnDates}, nil
 }
 
-//Implements the RPC method CreateAlarmLog.
-//Inserts into alarm_change_logs with parameters given by request.
+// Implements the RPC method CreateAlarmLog.
+// Inserts into alarm_change_logs with parameters given by request.
 func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlarmLogRequest) (*empty.Empty, error) {
 	db := s.DB()
 	al := req.Alarm
@@ -149,8 +149,8 @@ func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlar
 	return &empty.Empty{}, nil
 }
 
-//Implements the RPC method UpdateAlarm.
-//Updates alarm_refactor table with the parameters given by request.
+// Implements the RPC method UpdateAlarm.
+// Updates alarm_refactor table with the parameters given by request.
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 

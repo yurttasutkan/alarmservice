@@ -24,8 +24,23 @@ func ExecuteAlarm(alarm AlarmWithDates, data float32, device als.Device, alarmTy
 		fmt.Println("get zone anme error")
 	}
 	switch alarmType {
-	case "isi":
+	case "ısı":
 		message = date + " tarihinde " + zoneName + " ortamındaki " + device.Name + " isimli sensör " + alarmType + " kritik alarm seviyerini gecti. şu an ki değeri: " + fmt.Sprintf("%.2f", data)
+		break
+	case "nem":
+		message = date + " tarihinde " + zoneName + " ortamındaki " + device.Name + " isimli sensör " + alarmType + " kritik alarm seviyerini gecti. şu an ki değeri: " + fmt.Sprintf("%.2f", data)
+		break
+	case "acil durum":
+		message = zoneName + " deki " + device.Name + " sensöründe acil durum var"
+		break
+	case "kacak":
+		message = zoneName + " deki " + device.Name + " sensöründe kaçak var"
+		break
+	case "button":
+		message = zoneName + " deki " + device.Name + " sensöründen çağrı var"
+		break
+	case "door":
+		message = date + " tarihinde " + zoneName + " ortamındaki " + device.Name + " isimli sensör " + alarmType + " sensörü açıldı"
 		break
 	}
 

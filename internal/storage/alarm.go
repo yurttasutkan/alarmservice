@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -26,243 +25,6 @@ func (f AlarmFilters) SQL() string {
 
 	return " where is_active = true and  " + strings.Join(filters, " ")
 }
-func DoorAlarm(a AlarmWithDates, deviceName string, zonename string, alarmType string, date string) error {
-	currentTime := time.Now().Add(time.Hour * 3)
-	db := DB()
-	var u User
-	err := sqlx.Get(db, &u, "select * from public.user where id = $1", a.UserId)
-	if err != nil {
-		return HandlePSQLError(Select, err, "alarm log insert error")
-	}
-
-	notification := Notification{
-		SenderId:   0,
-		ReceiverId: a.UserId,
-		Message:    date + " tarihinde " + zonename + " ortamındaki " + deviceName + " isimli sensör " + alarmType + " sensörü açıldı",
-		CategoryId: 1,
-		IsRead:     false,
-		SendTime:   time.Now(),
-		SenderIp:   "system",
-		ReaderIp:   "",
-		IsDeleted:  false,
-		DeviceName: deviceName,
-		DevEui:     a.DevEui,
-	}
-	err = CreateNotification(notification)
-	if err != nil {
-		log.Println("CreateNotification error")
-	}
-
-	if a.Sms {
-		numbers := []string{u.PhoneNumber}
-		numbersString := NumbersArrayToString(numbers)
-
-		sms1N := OneToN{}
-		sms1N.UserID = 40584
-		sms1N.Username = "905322424400"
-		sms1N.Password = "001Sye44"
-		sms1N.Sender = "VERITEL"
-		sms1N.Numbers = numbersString
-		sms1N.Message = zonename + " deki " + deviceName + " sensörü açıldı"
-		sms1N.Type = "normal"
-		sms1N.Send1N()
-	}
-	if a.Email {
-
-		var user User
-		err := sqlx.Get(db, &user, `
-		select
-			*
-		from
-			"user"
-		where
-			id = $1
-	`, a.UserId)
-		if err != nil {
-			return HandlePSQLError(Select, err, "alarm log insert error")
-		}
-
-		SendEmail(user.Email, currentTime.Format("2006-01-02 15:04:05")+" tarihinde "+zonename+" deki "+deviceName+" sensörü açıldı")
-	}
-
-	if a.Notification {
-		n := FirebaseNotificationData{
-			Title: "Vaps",
-			Body:  currentTime.Format("2006-01-02 15:04:05") + " tarihinde " + zonename + " deki " + deviceName + " sensörü açıldı",
-			Time:  300000,
-			Delay: false,
-		}
-
-		SendFirebaseNotification(u, n)
-	}
-	return nil
-}
-
-func AlarmButton(a AlarmWithDates, deviceName string, zonename string) error {
-	db := DB()
-	currentTime := time.Now().Add(time.Hour * 3)
-	var u User
-	err := sqlx.Get(db, &u, "select * from public.user where id = $1", a.UserId)
-	if err != nil {
-		return HandlePSQLError(Select, err, "alarm log insert error")
-	}
-
-	if a.Sms {
-		numbers := []string{u.PhoneNumber}
-		numbersString := NumbersArrayToString(numbers)
-
-		sms1N := OneToN{}
-		sms1N.UserID = 40584
-		sms1N.Username = "905322424400"
-		sms1N.Password = "001Sye44"
-		sms1N.Sender = "VERITEL"
-		sms1N.Numbers = numbersString
-		sms1N.Message = zonename + " deki " + deviceName + " sensöründen çağrı var"
-		sms1N.Type = "normal"
-		sms1N.Send1N()
-	}
-	if a.Email {
-
-		var user User
-		err := sqlx.Get(db, &user, `
-		select
-			*
-		from
-			"user"
-		where
-			id = $1
-	`, a.UserId)
-		if err != nil {
-			return HandlePSQLError(Select, err, "alarm log insert error")
-		}
-
-		SendEmail(user.Email, currentTime.Format("2006-01-02 15:04:05")+" tarihinde "+zonename+" deki "+deviceName+" sensöründen çağrı var")
-	}
-
-	if a.Notification {
-		n := FirebaseNotificationData{
-			Title: "Vaps",
-			Body:  zonename + " deki " + deviceName + " sensöründen çağrı var" + " tarih: " + currentTime.Format("2006-01-02 15:04:05"),
-			Time:  300000,
-			Delay: false,
-		}
-
-		SendFirebaseNotification(u, n)
-	}
-
-	return nil
-}
-func WaterLeakAlarm(a AlarmWithDates, deviceName string, zonename string) error {
-	db := DB()
-	currentTime := time.Now().Add(time.Hour * 3)
-	var u User
-	err := sqlx.Get(db, &u, "select * from public.user where id = $1", a.UserId)
-	if err != nil {
-		return HandlePSQLError(Select, err, "alarm log insert error")
-	}
-
-	if a.Sms {
-		numbers := []string{u.PhoneNumber}
-		numbersString := NumbersArrayToString(numbers)
-
-		sms1N := OneToN{}
-		sms1N.UserID = 40584
-		sms1N.Username = "905322424400"
-		sms1N.Password = "001Sye44"
-		sms1N.Sender = "VERITEL"
-		sms1N.Numbers = numbersString
-		sms1N.Message = zonename + " deki " + deviceName + " sensöründe kaçak var"
-		sms1N.Type = "normal"
-		sms1N.Send1N()
-	}
-	if a.Email {
-		var user User
-		err := sqlx.Get(db, &user, `
-		select
-			*
-		from
-			"user"
-		where
-			id = $1
-	`, a.UserId)
-		if err != nil {
-			return HandlePSQLError(Select, err, "alarm log insert error")
-		}
-
-		SendEmail(user.Email, currentTime.Format("2006-01-02 15:04:05")+" tarihinde "+zonename+" deki "+deviceName+" sensöründe kaçak var")
-	}
-
-	if a.Notification {
-		n := FirebaseNotificationData{
-			Title: "Vaps",
-			Body:  currentTime.Format("2006-01-02 15:04:05") + " tarihinde " + zonename + " deki " + deviceName + " sensöründe kaçak var",
-			Time:  300000,
-			Delay: false,
-		}
-
-		SendFirebaseNotification(u, n)
-	}
-
-	return nil
-}
-
-func EmergencyAlarm(a AlarmWithDates, deviceName string, zonename string) error {
-
-	db := DB()
-
-	currentTime := time.Now().Add(time.Hour * 3)
-	var u User
-
-	err := sqlx.Get(db, &u, "select * from public.user where id = $1", a.UserId)
-	if err != nil {
-		return HandlePSQLError(Select, err, "alarm log insert error")
-	}
-
-	if a.Sms {
-		numbers := []string{u.PhoneNumber}
-		numbersString := NumbersArrayToString(numbers)
-
-		sms1N := OneToN{}
-		sms1N.UserID = 40584
-		sms1N.Username = "905322424400"
-		sms1N.Password = "001Sye44"
-		sms1N.Sender = "VERITEL"
-		sms1N.Numbers = numbersString
-		sms1N.Message = zonename + "deki" + deviceName + " sensöründe acil durum var"
-		sms1N.Type = "normal"
-		sms1N.Send1N()
-	}
-	if a.Email {
-
-		var user User
-		err := sqlx.Get(db, &user, `
-		select
-			*
-		from
-			"user"
-		where
-			id = $1
-	`, a.UserId)
-		if err != nil {
-			return HandlePSQLError(Select, err, "alarm log insert error")
-		}
-
-		SendEmail(user.Email, currentTime.Format("2006-01-02 15:04:05")+" tarihinde "+zonename+"deki"+deviceName+" sensöründe acil durum var")
-	}
-
-	if a.Notification {
-		n := FirebaseNotificationData{
-			Title: "Vaps",
-			Body:  currentTime.Format("2006-01-02 15:04:05") + " tarihinde " + zonename + "deki" + deviceName + " sensöründe acil durum var",
-			Time:  300000,
-			Delay: false,
-		}
-
-		SendFirebaseNotification(u, n)
-	}
-	return nil
-}
-
 func CreateNotification(notification Notification) error {
 	db := DB()
 	_, err := db.Exec(`insert into notifications(sender_id, 
@@ -294,32 +56,6 @@ func CreateNotification(notification Notification) error {
 	return nil
 }
 
-// func CheckAlarmTimeSchedule(a AlarmWithDates, v float32, deviceName string, zoneName string, alarmType string, date string, db sqlx.Ext) error {
-// 	if a.IsTimeLimitActive {
-// 		hours, minutes, _ := time.Now().Clock()
-// 		result := strconv.Itoa(hours+3) + "." + strconv.Itoa(minutes)
-// 		t, err := strconv.ParseFloat(result, 32)
-// 		if err != nil {
-// 			log.Printf("Error: %v\n", err)
-// 		}
-// 		if a.AlarmEndTime > a.AlarmStartTime {
-// 			if a.AlarmStartTime < float32(t) && float32(t) < a.AlarmEndTime {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 		} else {
-// 			if a.AlarmStartTime < float32(t) && float32(t) < 24 {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 			if 0 < float32(t) && float32(t) < a.AlarmEndTime {
-// 				CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 			}
-// 		}
-// 	} else {
-// 		CheckThreshold(a, v, deviceName, zoneName, alarmType, date, db)
-// 	}
-// 	return nil
-// }
-
 func CheckThreshold(alarm AlarmWithDates, data float32, device als.Device, alarmType string, date string, db sqlx.Ext) error {
 	if data < alarm.MinTreshold || data > alarm.MaxTreshold {
 		switch alarm.ZoneCategoryId {
@@ -334,7 +70,7 @@ func CheckThreshold(alarm AlarmWithDates, data float32, device als.Device, alarm
 				if err != nil {
 					return HandlePSQLError(Select, err, "alarm log insert error")
 				}
-				ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
+				ExecuteAlarm(alarm, data, device, alarmType, date, db)
 			} else {
 				_, err := db.Exec(`update cold_room_restrictions set alarm_time = alarm_time +1 where alarm_id = $1`, alarm.ID)
 				if err != nil {
@@ -343,19 +79,19 @@ func CheckThreshold(alarm AlarmWithDates, data float32, device als.Device, alarm
 			}
 			break
 		case 0:
-			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		case 2:
-			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}
 			break
 		default:
-			err := ExecuteAlarm(alarm, data, device.Name, zoneName, alarmType, date, db)
+			err := ExecuteAlarm(alarm, data, device, alarmType, date, db)
 			if err != nil {
 				return HandlePSQLError(Select, err, "alarm log insert error")
 			}

@@ -1,7 +1,6 @@
 package alarmservice
 
 import (
-	"context"
 	"log"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -11,9 +10,9 @@ import (
 
 //Implements the RPC method CreateColdRoomRestrictions.
 //Inserts into cold_room_restrictions table with given parameters in the request.
-func (a *AlarmServerAPI) CreateColdRoomRestrictions(ctx context.Context, req *als.CreateColdRoomRestrictionsRequest) (*empty.Empty, error) {
+func CreateColdRoomRestrictions( alarm *als.Alarm, alarmID int64) (*empty.Empty, error) {
 	db := s.DB()
-	coldRes := req.ColdRes
+	coldRes := 
 	_, err := db.Exec(`insert into cold_room_restrictions(
 		dev_eui,
 		alarm_id,

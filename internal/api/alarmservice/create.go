@@ -2,6 +2,7 @@ package alarmservice
 
 import (
 	"context"
+	"log"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
@@ -57,8 +58,12 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
+	// If Zone Category is 1, initialize als struct in order to use for CreateColdRoomRestrictionsRequest
 	if alarm.Alarm.ZoneCategoryID == 1 {
-		err := s.CreateColdRoomRestrictions(al)
+		err := s.CreateColdRoomRestrictions(al, returnID)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	resp := als.CreateAlarmResponse{

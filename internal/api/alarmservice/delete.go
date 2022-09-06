@@ -18,7 +18,7 @@ import (
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	var al s.Alarm
+	var al als.Alarm
 	err := sqlx.Get(db, &al, "select * from alarm_refactor where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
@@ -36,6 +36,9 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	if ra == 0 {
 		return &empty.Empty{}, nil
 	}
+
+	s.CreateAlarmLog(ctx, db, &al, al.UserID, al.IpAddress, 1)
+
 	return &empty.Empty{}, nil
 }
 
@@ -82,7 +85,7 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 
 //Implements the RPC method DeleteSensorAlarm.
 //Deletes the Alarm according to the DevEui given by the request.
-func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteSensorAlarmRequest) (*empty.Empty,error){
+func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteSensorAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
 	log.Println(req.DevEuis)
@@ -110,14 +113,14 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 
 //Implements the RPC method DeleteZoneAlarm.
 //Deletes alarms that are in the given zone by the request.
-func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context,req *als.DeleteZoneAlarmRequest) (*empty.Empty,error){
+func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZoneAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
 	log.Println(req.Zones)
 	var devEuis []string
 
 	err := sqlx.Select(db, &devEuis, `select devices from zone where zone_id = any($1)`, pq.Array(req.Zones))
-	if err!=nil{
+	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
@@ -141,7 +144,7 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context,req *als.DeleteZone
 
 //Implements the RPC method DeleteAlarmDevEui.
 //Deletes the alarm corresponding to the DevEui and UserID given in the request.
-func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteAlarmDevEuiRequest) (*empty.Empty,error){
+func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteAlarmDevEuiRequest) (*empty.Empty, error) {
 	db := s.DB()
 
 	res, err := db.Exec("delete from alarm_refactor where dev_eui = $1 and user_id = $2", req.Deveui, req.UserId)

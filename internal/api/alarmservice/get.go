@@ -2,6 +2,8 @@ package alarmservice
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"github.com/jmoiron/sqlx"
@@ -9,9 +11,11 @@ import (
 	s "github.com/yurttasutkan/alarmservice/internal/storage"
 )
 
-//Implements the RPC method GetAlarm.
-//Request takes alarmID as field and returns Alarm as response.
+// Implements the RPC method GetAlarm.
+// Request takes alarmID as field and returns Alarm as response.
 func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
+	fmt.Println("ALS = ALARM GET START")
+
 	db := s.DB()
 
 	var resp als.GetAlarmResponse
@@ -23,8 +27,8 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 	return &resp, nil
 }
 
-//Implements the RPC method GetAlarmLogs.
-//Request takes DevEUI as field and returns []AlarmLogs as response.
+// Implements the RPC method GetAlarmLogs.
+// Request takes DevEUI as field and returns []AlarmLogs as response.
 func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogsRequest) (*als.GetAlarmLogsResponse, error) {
 	db := s.DB()
 	var logs []s.AlarmLogs
@@ -71,10 +75,11 @@ func (a *AlarmServerAPI) GetAlarmLogs(ctx context.Context, req *als.GetAlarmLogs
 	return &als.GetAlarmLogsResponse{RespLog: result}, nil
 }
 
-//Implements the RPC method GetAlarmDates.
-//Request takes alarmID as field and returns []AlarmDateTime as response.
+// Implements the RPC method GetAlarmDates.
+// Request takes alarmID as field and returns []AlarmDateTime as response.
 func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDatesRequest) (*als.GetAlarmDatesResponse, error) {
 	db := s.DB()
+	fmt.Println("ALS = ALARM GET ALARM DATES")
 
 	var returnDates []*als.AlarmDateTime
 	var alarmDates []s.AlarmDateFilter
@@ -96,8 +101,8 @@ func (a *AlarmServerAPI) GetAlarmDates(ctx context.Context, req *als.GetAlarmDat
 	return &als.GetAlarmDatesResponse{RespDate: returnDates}, nil
 }
 
-//Implements the RPC method GetAlarmList.
-//Request takes AlarmFilter as field and returns []Alarm as response.
+// Implements the RPC method GetAlarmList.
+// Request takes AlarmFilter as field and returns []Alarm as response.
 func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmListRequest) (*als.GetAlarmListResponse, error) {
 	db := s.DB()
 
@@ -164,8 +169,8 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	return &als.GetAlarmListResponse{RespList: returnAlarms}, nil
 }
 
-//Implements the RPC method GetOrganizationAlarmList.
-//Request takes organizationID as field and returns []OrganizationAlarm as response.
+// Implements the RPC method GetOrganizationAlarmList.
+// Request takes organizationID as field and returns []OrganizationAlarm as response.
 func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.GetOrganizationAlarmListRequest) (*als.GetOrganizationAlarmListResponse, error) {
 	db := s.DB()
 

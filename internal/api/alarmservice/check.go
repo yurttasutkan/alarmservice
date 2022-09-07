@@ -18,7 +18,7 @@ import (
 // Checks the type of Alarm
 func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
-
+	fmt.Println("CHECK ALARM", req.Device.Name)
 	currentTime := time.Now().Add(time.Hour * 3)
 	var alarms []s.AlarmWithDates
 	weekday := time.Now().Weekday() + 1

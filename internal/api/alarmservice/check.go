@@ -230,3 +230,27 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 
 	return &emptypb.Empty{}, nil
 }
+
+func (a *AlarmServerAPI) CheckAlarm2(ctx context.Context, req *als.CheckAlarmRequest2) (*empty.Empty, error) {
+
+	fmt.Println("BEGINNING")
+	log.Println("BENINNGING")
+	/** db := s.DB()
+		fmt.Println("CHECK ALARM", req.Device.Name)
+	 var alarms []s.AlarmWithDates
+		weekday := time.Now().Weekday() + 1
+
+		// Select Alarms by Device DevEUI
+		err := sqlx.Select(db, &alarms, `select alrm.*, alrmDate.alarm_day, alrmDate.start_time, alrmDate.end_time  from alarm_refactor as alrm
+		inner join alarm_date_time alrmDate on alrm.id = alrmDate.alarm_id where dev_eui = $1
+		and ( alrmDate.alarm_day = 0 or alrmDate.alarm_day = $2 ) and is_active = true`, req.Device.DevEui, int(weekday))
+		if err != nil {
+			return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
+		}
+		switch req.Device.DeviceType {
+		case 1:
+			fmt.Println(req.Device.DeviceType, " Check alarm 2!")
+		}
+	*/
+	return &emptypb.Empty{}, nil
+}

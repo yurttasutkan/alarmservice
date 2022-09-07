@@ -14,7 +14,6 @@ import (
 // Implements the RPC method GetAlarm.
 // Request takes alarmID as field and returns Alarm as response.
 func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
-	fmt.Println("ALS = ALARM GET START")
 
 	db := s.DB()
 
@@ -124,8 +123,9 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	if err != nil {
 		return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-	var alarmDates []*als.AlarmDateTime
+	
 	for _, alarm := range alarms {
+		var alarmDates []*als.AlarmDateTime
 		var dates []s.AlarmDateFilter
 		err := sqlx.Select(db, &dates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
@@ -186,9 +186,10 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-	var alarmDates []*als.AlarmDateTime
+	
 
 	for _, alarm := range alarms {
+		var alarmDates []*als.AlarmDateTime
 		var dates []s.AlarmDateFilter
 		err := sqlx.Select(db, &dates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {

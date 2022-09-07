@@ -68,6 +68,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	}
 
 	for _, alarmDateTime := range al.AlarmDateTime {
+		log.Println("Alarmdate day: %v, start: %v,end: %v", alarmDateTime.AlarmDay, alarmDateTime.AlarmStartTime, alarmDateTime.AlarmEndTime)
 		dt := s.AlarmDateFilter{
 			AlarmId:        returnID,
 			AlarmDay:       alarmDateTime.AlarmDay,
@@ -112,34 +113,6 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	return &resp, nil
 }
 
-// Implements the RPC method CreateAlarmLog.
-// Inserts into alarm_change_logs with parameters given by request.
-func (a *AlarmServerAPI) CreateAlarmLog(ctx context.Context, req *als.CreateAlarmLogRequest) (*empty.Empty, error) {
-	db := s.DB()
-	al := req.Alarm
-
-	_, err := db.Exec(`insert into alarm_change_logs(
-		dev_eui,
-		min_treshold,
-		max_treshold,
-		user_id,
-		ip_address,
-		is_deleted,
-		sms,
-		temperature,
-		humadity,
-		ec,
-		door,
-		w_leak
-		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) `, al.DevEui, al.MinTreshold,
-		al.MaxTreshold, req.UserID, req.IpAddress, req.IsDeleted, al.Sms, al.Temperature, al.Humadity, al.Ec, al.Door, al.WLeak)
-	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
-	}
-
-	return &empty.Empty{}, nil
-}
-
 // Implements the RPC method UpdateAlarm.
 // Updates alarm_refactor table with the parameters given by request.
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
@@ -163,6 +136,9 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.IsTimeLimitActive,
 		req.AlarmID,
 	)
+	if err != nil {
+		log.Println(err)
+	}
 
 	for _, alarmDateTime := range req.Alarm.AlarmDateTime {
 		dt := s.AlarmDateFilter{

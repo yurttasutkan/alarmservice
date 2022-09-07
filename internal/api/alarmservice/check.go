@@ -37,7 +37,10 @@ func (a *AlarmServerAPI) CheckAlarm(ctx context.Context, req *als.CheckAlarmRequ
 		json.Unmarshal([]byte(req.ObjectJSON), &data)
 		// Check for each alarm
 		for _, element := range alarms {
+			fmt.Println("alarm: ", req.Device.Name)
 			if s.CheckAlarmTime(element) {
+				fmt.Println("alarm time schedule geçti: ", element.Temperature)
+
 				if element.Temperature {
 					temp, err := strconv.ParseFloat(data.Temperature, 32)
 					if err != nil {

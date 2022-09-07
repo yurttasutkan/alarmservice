@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/caarlos0/log v0.1.2
 	github.com/golang/protobuf v1.5.2
-	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.22.2
+	github.com/ibrahimozekici/chirpstack-api/go/v5 v5.22.3
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
 	github.com/pkg/errors v0.9.1

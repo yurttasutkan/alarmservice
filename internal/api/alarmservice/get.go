@@ -2,7 +2,6 @@ package alarmservice
 
 import (
 	"context"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
 	"github.com/jmoiron/sqlx"
@@ -120,11 +119,22 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	if err != nil {
 		return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
+	var alarmDates []*als.AlarmDateTime
 	for _, alarm := range alarms {
-		var alarmDates []s.AlarmDateFilter
-		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
+		var dates []s.AlarmDateFilter
+		err := sqlx.Select(db, &dates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
 			return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
+		}
+		for _, date := range dates {
+			dt := &als.AlarmDateTime{
+				Id:             date.ID,
+				AlarmId:        date.AlarmId,
+				AlarmDay:       date.AlarmDay,
+				AlarmStartTime: date.AlarmStartTime,
+				AlarmEndTime:   date.AlarmEndTime,
+			}
+			alarmDates = append(alarmDates, dt)
 		}
 
 		al := als.Alarm{
@@ -143,6 +153,11 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 			AlarmStartTime:    alarm.AlarmStartTime,
 			AlarmStopTime:     alarm.AlarmStopTime,
 			Notification:      alarm.Notification,
+			UserID:            alarm.UserId,
+			IpAddress:         alarm.IpAddress,
+			ZoneCategoryID:    alarm.ZoneCategoryId,
+			IsActive:          alarm.IsActive,
+			AlarmDateTime:     alarmDates,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
@@ -166,12 +181,23 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-	for _, alarm := range alarms {
-		var alarmDates []s.AlarmDateFilter
+	var alarmDates []*als.AlarmDateTime
 
-		err := sqlx.Select(db, &alarmDates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
+	for _, alarm := range alarms {
+		var dates []s.AlarmDateFilter
+		err := sqlx.Select(db, &dates, "select * from alarm_date_time where alarm_id = $1", alarm.ID)
 		if err != nil {
 			return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
+		}
+		for _, date := range dates {
+			dt := &als.AlarmDateTime{
+				Id:             date.ID,
+				AlarmId:        date.AlarmId,
+				AlarmDay:       date.AlarmDay,
+				AlarmStartTime: date.AlarmStartTime,
+				AlarmEndTime:   date.AlarmEndTime,
+			}
+			alarmDates = append(alarmDates, dt)
 		}
 
 		al := als.OrganizationAlarm{
@@ -191,6 +217,9 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			DeviceName:        alarm.DeviceName,
 			ZoneName:          alarm.ZoneName,
 			UserName:          alarm.Username,
+			UserID:            alarm.UserId,
+			IpAddress:         alarm.IpAddress,
+			AlarmDateTime:     alarmDates,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}

@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Sep 06 10:11:06 2022
+# Make data base, printed on Wed Sep 07 13:20:51 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Windows\System32
+VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_35936_BGYUXVEBGURBOAND
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_4392_LGJAPQSRZWRAVUBR
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 35936
+VSCODE_PID = 4392
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -225,7 +225,7 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 158 Stepping 10, GenuineIntel
 
 # Directories
 
-# . (key e:/staj/alarmservice, mtime 1662445583): 12 files, no impossibilities.
+# . (key e:/staj/alarmservice, mtime 1662452779): 12 files, no impossibilities.
 
 # 12 files, no impossibilities in 1 directories.
 
@@ -312,6 +312,6 @@ serve: build
 # strcache performance: lookups = 34 / hit rate = 41%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/34=0%
-# Finished Make data base on Tue Sep 06 10:11:06 2022
+# Finished Make data base on Wed Sep 07 13:20:51 2022
 
  

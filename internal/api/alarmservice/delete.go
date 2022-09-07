@@ -17,8 +17,7 @@ import (
 //Deletes the alarm according to userID and alarmID given by the request.
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
-
-	var al als.Alarm
+	var al s.Alarm
 	err := sqlx.Get(db, &al, "select * from alarm_refactor where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
@@ -37,7 +36,28 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 		return &empty.Empty{}, nil
 	}
 
-	s.CreateAlarmLog(ctx, db, &al, al.UserID, al.IpAddress, 1)
+	reqAlarm := &als.Alarm{
+		Id:                al.ID,
+		DevEui:            al.DevEui,
+		MinTreshold:       al.MinTreshold,
+		MaxTreshold:       al.MaxTreshold,
+		Sms:               al.Sms,
+		Email:             al.Email,
+		Notification:      al.Notification,
+		Temperature:       al.Temperature,
+		Humadity:          al.Humadity,
+		Ec:                al.Ec,
+		Door:              al.Door,
+		WLeak:             al.WaterLeak,
+		UserID:            al.UserId,
+		IpAddress:         al.IpAddress,
+		IsTimeLimitActive: al.IsTimeLimitActive,
+		AlarmStartTime:    al.AlarmStartTime,
+		AlarmStopTime:     al.AlarmStopTime,
+		ZoneCategoryID:    al.ZoneCategoryId,
+		IsActive:          al.IsActive,
+	}
+	s.CreateAlarmLog(ctx, db, reqAlarm, al.UserId, al.IpAddress, 1)
 
 	return &empty.Empty{}, nil
 }

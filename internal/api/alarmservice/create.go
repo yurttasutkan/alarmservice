@@ -68,7 +68,6 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	}
 
 	for _, alarmDateTime := range al.AlarmDateTime {
-		log.Println("Alarmdate day: %v, start: %v,end: %v", alarmDateTime.AlarmDay, alarmDateTime.AlarmStartTime, alarmDateTime.AlarmEndTime)
 		dt := s.AlarmDateFilter{
 			AlarmId:        returnID,
 			AlarmDay:       alarmDateTime.AlarmDay,

@@ -155,4 +155,3 @@ func CreateAlarmLog(ctx context.Context, db sqlx.Ext, a *als.Alarm, userID int64
 
 	return nil
 }
-

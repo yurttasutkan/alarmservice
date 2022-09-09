@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Sep 08 08:49:07 2022
+# Make data base, printed on Fri Sep 09 08:39:24 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\Utkan
 # environment
 LOCALAPPDATA = C:\Users\Utkan\AppData\Local
 # environment
-VSCODE_CWD = C:\Windows\System32
+VSCODE_CWD = C:\Users\Utkan\AppData\Local\Programs\Microsoft VS Code
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\Utkan\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_2976_EJXWXCPCSMNTWIPJ
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_20060_IHNEPENXONMCLDWI
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -93,7 +93,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 2976
+VSCODE_PID = 20060
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # environment
@@ -164,6 +164,7 @@ GNUMAKEFLAGS :=
 OS = Windows_NT
 # makefile
 .DEFAULT_GOAL := build
+ 
 # default
 MAKE_VERSION := 4.3
 # environment
@@ -185,8 +186,7 @@ GOMODCACHE = C:\Users\Utkan\go\pkg\mod
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Co 
-mmon Files
+COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
@@ -313,6 +313,6 @@ serve: build
 # strcache performance: lookups = 34 / hit rate = 41%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/34=0%
-# Finished Make data base on Thu Sep 08 08:49:07 2022
+# Finished Make data base on Fri Sep 09 08:39:24 2022
 
  

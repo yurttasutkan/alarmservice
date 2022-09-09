@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
+	"github.com/jmoiron/sqlx"
 )
 
 //Implements the RPC method CreateColdRoomRestrictions.
 //Inserts into cold_room_restrictions table with given parameters in the request.
-func CreateColdRoomRestrictions(alarm *als.Alarm, alarmID int64) error {
-	db := DB()
+func CreateColdRoomRestrictions(alarm *als.Alarm, alarmID int64, db sqlx.Ext) error {
 	coldRes := ColdRoomRestrictions{
 		DevEui:           alarm.DevEui,
 		AlarmId:          alarmID,
@@ -24,6 +24,17 @@ func CreateColdRoomRestrictions(alarm *als.Alarm, alarmID int64) error {
 		defrost_frequency,
 		alarm_time
 	) values ($1, $2, $3, $4, $5)`, coldRes.DevEui, coldRes.AlarmId, coldRes.DefrostTime, coldRes.DefrostFrequency, coldRes.AlarmTime)
+	if err != nil {
+		log.Fatalf("Insert error %v", err)
+	}
+	return nil
+}
+
+func CreateUtku(alarm *als.Alarm, db sqlx.Ext) error {
+	_, err := db.Exec(`insert into utku_table(
+		dev_eui,
+		alarm_id,
+	) values ($1, $2)`, alarm.DevEui, alarm.Id)
 	if err != nil {
 		log.Fatalf("Insert error %v", err)
 	}

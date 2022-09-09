@@ -88,6 +88,15 @@ type ColdRoomRestrictions struct {
 	DefrostFrequency int64  `db:"defrost_frequency"`
 	AlarmTime        int64  `db:"alarm_time"`
 }
+type UtkuStruct struct {
+	ID          int64   `db:"id"`
+	DevEui      string  `db:"dev_eui"`
+	AlarmId     int64   `db:"alarm_id"`
+	LocalMaxVal float32 `db:"local_max_value"`
+	Counter     int64   `db:"counter"`
+	CntLimit    float32 `db:"cnt_limit"`
+}
+
 type AlarmLogs struct {
 	DevEui         string    `db:"dev_eui"`
 	MinTreshold    float32   `db:"min_treshold"`

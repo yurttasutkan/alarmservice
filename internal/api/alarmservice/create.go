@@ -61,7 +61,11 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 
 	// If Zone Category is 1, initialize als struct in order to use for CreateColdRoomRestrictionsRequest
 	if alarm.Alarm.ZoneCategoryID == 1 {
-		err := s.CreateColdRoomRestrictions(al, returnID)
+		err := s.CreateColdRoomRestrictions(al, returnID, db)
+		if err != nil {
+			log.Println(err)
+		}
+		err = s.CreateUtku(al, db)
 		if err != nil {
 			log.Println(err)
 		}

@@ -65,7 +65,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		if err != nil {
 			log.Println(err)
 		}
-		err = s.CreateUtku(al, db)
+		err = s.CreateUtku(al, returnID, db)
 		if err != nil {
 			log.Println(err)
 		}

@@ -30,11 +30,15 @@ func CreateColdRoomRestrictions(alarm *als.Alarm, alarmID int64, db sqlx.Ext) er
 	return nil
 }
 
-func CreateUtku(alarm *als.Alarm, db sqlx.Ext) error {
+func CreateUtku(alarm *als.Alarm, alarmID int64, db sqlx.Ext) error {
+	utkuObject := UtkuStruct{
+		DevEui:  alarm.DevEui,
+		AlarmId: alarmID,
+	}
 	_, err := db.Exec(`insert into utku_table(
 		dev_eui,
-		alarm_id,
-	) values ($1, $2)`, alarm.DevEui, alarm.Id)
+		alarm_id
+	) values ($1, $2)`, utkuObject.DevEui, utkuObject.AlarmId)
 	if err != nil {
 		log.Fatalf("Insert error %v", err)
 	}

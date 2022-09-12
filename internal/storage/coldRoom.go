@@ -7,13 +7,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//Implements the RPC method CreateColdRoomRestrictions.
-//Inserts into cold_room_restrictions table with given parameters in the request.
+// Implements the RPC method CreateColdRoomRestrictions.
+// Inserts into cold_room_restrictions table with given parameters in the request.
 func CreateColdRoomRestrictions(alarm *als.Alarm, alarmID int64, db sqlx.Ext) error {
 	coldRes := ColdRoomRestrictions{
 		DevEui:           alarm.DevEui,
 		AlarmId:          alarmID,
-		DefrostTime:      alarm.ColdRoomTime,
+		DefrostTime:      35,
 		DefrostFrequency: alarm.ColdRoomFreq,
 		AlarmTime:        0,
 	}

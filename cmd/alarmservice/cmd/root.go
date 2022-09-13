@@ -34,7 +34,7 @@ func init() {
 
 	// defaults
 	viper.SetDefault("general.grpc_default_resolver_scheme", "passthrough")
-	viper.SetDefault("postgresql.dsn", "postgres://chirpstack_as:chirpstack_as@postgresql/chirpstack_as?sslmode=disable")
+	viper.SetDefault("postgresql.dsn", "postgres://chirpstack_as:letirev@postgresql/chirpstack_as?sslmode=disable")
 	viper.SetDefault("postgresql.automigrate", true)
 	viper.SetDefault("postgresql.max_idle_connections", 2)
 	viper.SetDefault("alarm_server.api.bind", "172.22.0.18:9000")

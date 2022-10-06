@@ -17,12 +17,57 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 
 	db := s.DB()
 
+	fmt.Println("ALARM ID ", alReq.AlarmID)
 	var resp als.GetAlarmResponse
+	var respAlarm s.Alarm
+	var alarmDates []*als.AlarmDateTime
 
-	err := sqlx.Get(db, &resp.Alarm, "select * from alarm_refactor where id = $1 and is_active = true", alReq.AlarmID)
+	err := sqlx.Get(db, &respAlarm, "select * from alarm_refactor where id = $1", alReq.AlarmID)
 	if err != nil {
-		return &als.GetAlarmResponse{Alarm: resp.Alarm}, s.HandlePSQLError(s.Select, err, "select error")
+		fmt.Println(err)
+		return &resp, s.HandlePSQLError(s.Select, err, "select error")
 	}
+	var dates []s.AlarmDateFilter
+	err = sqlx.Select(db, &dates, "select * from alarm_date_time where alarm_id = $1", alReq.AlarmID)
+	if err != nil {
+		return &resp, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
+	for _, date := range dates {
+		dt := &als.AlarmDateTime{
+			Id:             date.ID,
+			AlarmId:        date.AlarmId,
+			AlarmDay:       date.AlarmDay,
+			AlarmStartTime: date.AlarmStartTime,
+			AlarmEndTime:   date.AlarmEndTime,
+		}
+		alarmDates = append(alarmDates, dt)
+	}
+	al := als.Alarm{
+		Id:                respAlarm.ID,
+		DevEui:            respAlarm.DevEui,
+		MinTreshold:       respAlarm.MinTreshold,
+		MaxTreshold:       respAlarm.MaxTreshold,
+		Sms:               respAlarm.Sms,
+		Email:             respAlarm.Email,
+		Temperature:       respAlarm.Temperature,
+		Humadity:          respAlarm.Humadity,
+		Ec:                respAlarm.Ec,
+		Door:              respAlarm.Door,
+		WLeak:             respAlarm.WaterLeak,
+		IsTimeLimitActive: respAlarm.IsTimeLimitActive,
+		AlarmStartTime:    respAlarm.AlarmStartTime,
+		AlarmStopTime:     respAlarm.AlarmStopTime,
+		Notification:      respAlarm.Notification,
+		UserID:            respAlarm.UserId,
+		IpAddress:         respAlarm.IpAddress,
+		ZoneCategoryID:    respAlarm.ZoneCategoryId,
+		IsActive:          respAlarm.IsActive,
+		AlarmDateTime:     alarmDates,
+	}
+	fmt.Println("GEL ALARM SONU")
+
+	resp.Alarm = &al
 	return &resp, nil
 }
 
@@ -123,7 +168,7 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	if err != nil {
 		return &als.GetAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-	
+
 	for _, alarm := range alarms {
 		var alarmDates []*als.AlarmDateTime
 		var dates []s.AlarmDateFilter
@@ -186,7 +231,6 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-	
 
 	for _, alarm := range alarms {
 		var alarmDates []*als.AlarmDateTime

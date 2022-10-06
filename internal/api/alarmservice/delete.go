@@ -13,8 +13,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-//Implements the RPC method DeleteAlarm.
-//Deletes the alarm according to userID and alarmID given by the request.
+// Implements the RPC method DeleteAlarm.
+// Deletes the alarm according to userID and alarmID given by the request.
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 	var al s.Alarm
@@ -23,7 +23,7 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	res, err := db.Exec("update alarm_refactor set is_active = false where id = $1 and user_id = $2", req.AlarmID, req.UserID)
+	res, err := db.Exec("update alarm_refactor set is_active = false where id = $1 ", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -62,8 +62,8 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	return &empty.Empty{}, nil
 }
 
-//Implements the RPC method DeleteAlarmDates.
-//Deletes the AlarmDateTime according to the AlarmID given by the request.
+// Implements the RPC method DeleteAlarmDates.
+// Deletes the AlarmDateTime according to the AlarmID given by the request.
 func (a *AlarmServerAPI) DeleteAlarmDates(ctx context.Context, req *als.DeleteAlarmDatesRequest) (*empty.Empty, error) {
 	db := s.DB()
 
@@ -75,8 +75,8 @@ func (a *AlarmServerAPI) DeleteAlarmDates(ctx context.Context, req *als.DeleteAl
 	return &empty.Empty{}, nil
 }
 
-//Implements the RPC method DeleteUserAlarm.
-//Deletes the Alarm according to the UserID given by the request.
+// Implements the RPC method DeleteUserAlarm.
+// Deletes the Alarm according to the UserID given by the request.
 func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUserAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
@@ -103,8 +103,8 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 	return &emptypb.Empty{}, nil
 }
 
-//Implements the RPC method DeleteSensorAlarm.
-//Deletes the Alarm according to the DevEui given by the request.
+// Implements the RPC method DeleteSensorAlarm.
+// Deletes the Alarm according to the DevEui given by the request.
 func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteSensorAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
@@ -131,8 +131,8 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	return &emptypb.Empty{}, nil
 }
 
-//Implements the RPC method DeleteZoneAlarm.
-//Deletes alarms that are in the given zone by the request.
+// Implements the RPC method DeleteZoneAlarm.
+// Deletes alarms that are in the given zone by the request.
 func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZoneAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
@@ -162,8 +162,8 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZon
 	return &emptypb.Empty{}, nil
 }
 
-//Implements the RPC method DeleteAlarmDevEui.
-//Deletes the alarm corresponding to the DevEui and UserID given in the request.
+// Implements the RPC method DeleteAlarmDevEui.
+// Deletes the alarm corresponding to the DevEui and UserID given in the request.
 func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteAlarmDevEuiRequest) (*empty.Empty, error) {
 	db := s.DB()
 

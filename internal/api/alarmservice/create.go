@@ -36,8 +36,9 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		alarm_start_time,
 		alarm_stop_time,
 		zone_category,
-		notification
-	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) returning id`,
+		notification,
+		notification_sound
+	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id`,
 		al.DevEui,
 		al.MinTreshold,
 		al.MaxTreshold,
@@ -54,6 +55,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		al.AlarmStopTime,
 		al.ZoneCategoryID,
 		al.Notification,
+		al.NotificationSound,
 	).Scan(&returnID)
 	if err != nil {
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
@@ -108,6 +110,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			ZoneCategoryID:    al.ZoneCategoryID,
 			IsActive:          al.IsActive,
 			AlarmDateTime:     dates,
+			NotificationSound: al.NotificationSound,
 		},
 	}
 
@@ -129,7 +132,8 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	sms    = $3,
 	email = $4,
 	notification = $5,
-	is_time_limit_active = $6
+	is_time_limit_active = $6,
+	notification_sound = $8
 	where id = $7`,
 		alarm.MinTreshold,
 		alarm.MaxTreshold,
@@ -138,6 +142,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.Notification,
 		alarm.IsTimeLimitActive,
 		req.AlarmID,
+		alarm.NotificationSound,
 	)
 	if err != nil {
 		log.Println(err)

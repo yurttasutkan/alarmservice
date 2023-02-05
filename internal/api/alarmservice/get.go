@@ -64,6 +64,7 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 		ZoneCategoryID:    respAlarm.ZoneCategoryId,
 		IsActive:          respAlarm.IsActive,
 		AlarmDateTime:     alarmDates,
+		NotificationSound: respAlarm.NotificationSound,
 	}
 	fmt.Println("GEL ALARM SONU")
 
@@ -207,7 +208,14 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 			IpAddress:         alarm.IpAddress,
 			ZoneCategoryID:    alarm.ZoneCategoryId,
 			IsActive:          alarm.IsActive,
+			Power:             alarm.Power,
+			Current:           alarm.Current,
+			Factor:            alarm.Factor,
+			Voltage:           alarm.Voltage,
+			Status:            alarm.Status,
+			PowerSum:          alarm.PowerSum,
 			AlarmDateTime:     alarmDates,
+			NotificationSound: alarm.NotificationSound,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}

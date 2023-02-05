@@ -22,6 +22,14 @@ type Alarm struct {
 	AlarmStopTime     float32 `db:"alarm_stop_time"`
 	ZoneCategoryId    int64   `db:"zone_category"`
 	IsActive          bool    `db:"is_active"`
+	Pressure          bool    `db:"pressure"`
+	Current           float32 `db:"current"`
+	Factor            float32 `db:"factor"`
+	Power             float32 `db:"power"`
+	Voltage           float32 `db:"voltage"`
+	Status            int64   `db:"status"`
+	PowerSum          float32 `db:"power_sum"`
+	NotificationSound string  `db:"notification_sound"`
 }
 
 type OrganizationAlarm struct {
@@ -47,6 +55,13 @@ type OrganizationAlarm struct {
 	ZoneName          string  `db:"zone_name"`
 	DeviceName        string  `db:"device_name"`
 	Username          string  `db:"username"`
+	Pressure          bool    `db:"pressure"`
+	Current           float32 `db:"current"`
+	Factor            float32 `db:"factor"`
+	Power             float32 `db:"power"`
+	Voltage           float32 `db:"voltage"`
+	Status            int64   `db:"status"`
+	PowerSum          float32 `db:"power_sum"`
 }
 type AlarmWithDates struct {
 	ID                int64   `db:"id"`

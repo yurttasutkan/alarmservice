@@ -22,7 +22,7 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 	var respAlarm s.Alarm
 	var alarmDates []*als.AlarmDateTime
 
-	err := sqlx.Get(db, &respAlarm, "select * from alarm_refactor where id = $1", alReq.AlarmID)
+	err := sqlx.Get(db, &respAlarm, "select * from alarm_refactor2 where id = $1", alReq.AlarmID)
 	if err != nil {
 		fmt.Println(err)
 		return &resp, s.HandlePSQLError(s.Select, err, "select error")
@@ -160,7 +160,7 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 	var alarms []s.Alarm
 	query, args, err := sqlx.BindNamed(sqlx.DOLLAR, `
 	select *
-	from alarm_refactor
+	from alarm_refactor2
 	`+filters.SQL(), filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "named query error")
@@ -229,13 +229,11 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 
 	var returnAlarms []*als.OrganizationAlarm
 	var alarms []s.OrganizationAlarm
-	err := sqlx.Select(db, &alarms, `select u.username, z.zone_name, d.name as device_name, ar.*
-	from alarm_refactor as ar
-		inner join public.user as u on ar.user_id = u.id
-		inner join organization_user as ou on ou.user_id = u.id
+	err := sqlx.Select(db, &alarms, `select z.zone_name, d.name as device_name, ar.*
+	from alarm_refactor2 as ar
 		inner join device as d on d.dev_eui::text = '\x' || ar.dev_eui
 		inner join zone as z on  d.dev_eui::text = any(z.devices)
-		where ou.organization_id = $1 and ar.is_active = true;`, req.OrganizationID)
+		where d.organization_id = $1 and ar.is_active = true;`, req.OrganizationID)
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}

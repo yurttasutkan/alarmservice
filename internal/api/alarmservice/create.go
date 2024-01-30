@@ -20,7 +20,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 
 	al := alarm.Alarm
 	err := db.QueryRowx(`
-	insert into alarm_refactor (
+	insert into alarm_refactor2 (
 		dev_eui,
 		min_treshold,
 		max_treshold,
@@ -126,14 +126,15 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	var alarmDates []s.AlarmDateFilter
 
 	alarm := req.Alarm
-	res, err := db.Exec(`update alarm_refactor 
+	res, err := db.Exec(`update alarm_refactor2 
 	set   min_treshold = $1,
 	max_treshold = $2,
 	sms    = $3,
 	email = $4,
 	notification = $5,
 	is_time_limit_active = $6,
-	notification_sound = $8
+	notification_sound = $8,
+	user_id = $10
 	where id = $7`,
 		alarm.MinTreshold,
 		alarm.MaxTreshold,
@@ -143,6 +144,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.IsTimeLimitActive,
 		req.AlarmID,
 		alarm.NotificationSound,
+		alarm.UserID,
 	)
 	if err != nil {
 		log.Println(err)

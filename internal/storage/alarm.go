@@ -24,7 +24,7 @@ func (f AlarmFilters) SQL() string {
 	return " where is_active = true and  " + strings.Join(filters, " ")
 }
 
-func CreateAlarmLog(ctx context.Context, db sqlx.Ext, a *als.Alarm, userID int64, ipAddress string, isDeleted int64) error {
+func CreateAlarmLog(ctx context.Context, db sqlx.Ext, a *als.Alarm, userID []int64, ipAddress string, isDeleted int64) error {
 	_, err := db.Exec(`insert into alarm_change_logs(
 		dev_eui,
 		min_treshold,

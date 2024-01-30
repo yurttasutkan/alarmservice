@@ -1,67 +1,72 @@
 package storage
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Alarm struct {
-	ID                int64   `db:"id"`
-	DevEui            string  `db:"dev_eui"`
-	MinTreshold       float32 `db:"min_treshold"`
-	MaxTreshold       float32 `db:"max_treshold"`
-	Sms               bool    `db:"sms"`
-	Email             bool    `db:"email"`
-	Notification      bool    `db:"notification"`
-	Temperature       bool    `db:"temperature"`
-	Humadity          bool    `db:"humadity"`
-	Ec                bool    `db:"ec"`
-	Door              bool    `db:"door"`
-	WaterLeak         bool    `db:"w_leak"`
-	UserId            int64   `db:"user_id"`
-	IpAddress         string  `db:"ip_address"`
-	IsTimeLimitActive bool    `db:"is_time_limit_active"`
-	AlarmStartTime    float32 `db:"alarm_start_time"`
-	AlarmStopTime     float32 `db:"alarm_stop_time"`
-	ZoneCategoryId    int64   `db:"zone_category"`
-	IsActive          bool    `db:"is_active"`
-	Pressure          bool    `db:"pressure"`
-	Current           float32 `db:"current"`
-	Factor            float32 `db:"factor"`
-	Power             float32 `db:"power"`
-	Voltage           float32 `db:"voltage"`
-	Status            int64   `db:"status"`
-	PowerSum          float32 `db:"power_sum"`
-	NotificationSound string  `db:"notification_sound"`
+	ID                int64         `db:"id"`
+	DevEui            string        `db:"dev_eui"`
+	MinTreshold       float32       `db:"min_treshold"`
+	MaxTreshold       float32       `db:"max_treshold"`
+	Sms               bool          `db:"sms"`
+	Email             bool          `db:"email"`
+	Notification      bool          `db:"notification"`
+	Temperature       bool          `db:"temperature"`
+	Humadity          bool          `db:"humadity"`
+	Ec                bool          `db:"ec"`
+	Door              bool          `db:"door"`
+	WaterLeak         bool          `db:"w_leak"`
+	UserId            pq.Int64Array `db:"user_id"`
+	IpAddress         string        `db:"ip_address"`
+	IsTimeLimitActive bool          `db:"is_time_limit_active"`
+	AlarmStartTime    float32       `db:"alarm_start_time"`
+	AlarmStopTime     float32       `db:"alarm_stop_time"`
+	ZoneCategoryId    int64         `db:"zone_category"`
+	IsActive          bool          `db:"is_active"`
+	Pressure          bool          `db:"pressure"`
+	Current           float32       `db:"current"`
+	Factor            float32       `db:"factor"`
+	Power             float32       `db:"power"`
+	Voltage           float32       `db:"voltage"`
+	Status            int64         `db:"status"`
+	PowerSum          float32       `db:"power_sum"`
+	NotificationSound string        `db:"notification_sound"`
 }
 
 type OrganizationAlarm struct {
-	ID                int64   `db:"id"`
-	DevEui            string  `db:"dev_eui"`
-	MinTreshold       float32 `db:"min_treshold"`
-	MaxTreshold       float32 `db:"max_treshold"`
-	Sms               bool    `db:"sms"`
-	Email             bool    `db:"email"`
-	Notification      bool    `db:"notification"`
-	Temperature       bool    `db:"temperature"`
-	Humadity          bool    `db:"humadity"`
-	Ec                bool    `db:"ec"`
-	Door              bool    `db:"door"`
-	WaterLeak         bool    `db:"w_leak"`
-	UserId            int64   `db:"user_id"`
-	IpAddress         string  `db:"ip_address"`
-	IsTimeLimitActive bool    `db:"is_time_limit_active"`
-	AlarmStartTime    float32 `db:"alarm_start_time"`
-	AlarmStopTime     float32 `db:"alarm_stop_time"`
-	ZoneCategoryId    int64   `db:"zone_category"`
-	IsActive          bool    `db:"is_active"`
-	ZoneName          string  `db:"zone_name"`
-	DeviceName        string  `db:"device_name"`
-	Username          string  `db:"username"`
-	Pressure          bool    `db:"pressure"`
-	Current           float32 `db:"current"`
-	Factor            float32 `db:"factor"`
-	Power             float32 `db:"power"`
-	Voltage           float32 `db:"voltage"`
-	Status            int64   `db:"status"`
-	PowerSum          float32 `db:"power_sum"`
+	ID                int64         `db:"id"`
+	DevEui            string        `db:"dev_eui"`
+	MinTreshold       float32       `db:"min_treshold"`
+	MaxTreshold       float32       `db:"max_treshold"`
+	Sms               bool          `db:"sms"`
+	Email             bool          `db:"email"`
+	Notification      bool          `db:"notification"`
+	Temperature       bool          `db:"temperature"`
+	Humadity          bool          `db:"humadity"`
+	Ec                bool          `db:"ec"`
+	Door              bool          `db:"door"`
+	WaterLeak         bool          `db:"w_leak"`
+	UserId            pq.Int64Array `db:"user_id"`
+	IpAddress         string        `db:"ip_address"`
+	IsTimeLimitActive bool          `db:"is_time_limit_active"`
+	AlarmStartTime    float32       `db:"alarm_start_time"`
+	AlarmStopTime     float32       `db:"alarm_stop_time"`
+	ZoneCategoryId    int64         `db:"zone_category"`
+	IsActive          bool          `db:"is_active"`
+	ZoneName          string        `db:"zone_name"`
+	DeviceName        string        `db:"device_name"`
+	Username          string        `db:"username"`
+	Pressure          bool          `db:"pressure"`
+	Current           float32       `db:"current"`
+	Factor            float32       `db:"factor"`
+	Power             float32       `db:"power"`
+	Voltage           float32       `db:"voltage"`
+	Status            int64         `db:"status"`
+	PowerSum          float32       `db:"power_sum"`
+	NotificationSound string        `db:"notification_sound"`
 }
 type AlarmWithDates struct {
 	ID                int64   `db:"id"`

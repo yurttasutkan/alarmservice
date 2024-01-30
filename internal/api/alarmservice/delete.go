@@ -18,12 +18,12 @@ import (
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 	var al s.Alarm
-	err := sqlx.Get(db, &al, "select * from alarm_refactor where id = $1", req.AlarmID)
+	err := sqlx.Get(db, &al, "select * from alarm_refactor2 where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	res, err := db.Exec("update alarm_refactor set is_active = false where id = $1 ", req.AlarmID)
+	res, err := db.Exec("update alarm_refactor2 set is_active = false where id = $1 ", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -80,7 +80,7 @@ func (a *AlarmServerAPI) DeleteAlarmDates(ctx context.Context, req *als.DeleteAl
 func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUserAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	res, err := db.Exec("update alarm_refactor set is_active = false where user_id = any($1)", pq.Array(req.UserIds))
+	res, err := db.Exec("update alarm_refactor2 set is_active = false where user_id = any($1)", pq.Array(req.UserIds))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -92,7 +92,7 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 	_, err = db.Exec(`INSERT INTO public.alarm_change_logs(
 		dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
 	   select dev_eui,  min_treshold, max_treshold, user_id, '', 1, sms,temperature, humadity, ec, door, w_leak 
-	   from alarm_refactor where user_id = any($1) and is_active = true`, pq.Array(req.UserIds))
+	   from alarm_refactor2 where user_id = any($1) and is_active = true`, pq.Array(req.UserIds))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -109,14 +109,14 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	db := s.DB()
 
 	log.Println(req.DevEuis)
-	res, err := db.Exec("update alarm_refactor set is_active = false where dev_eui = any($1)", pq.Array(req.DevEuis))
+	res, err := db.Exec("update alarm_refactor2 set is_active = false where dev_eui = any($1)", pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 	_, err = db.Exec(`INSERT INTO public.alarm_change_logs(
 		dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
 	   select dev_eui,  min_treshold, max_treshold, user_id, '', 1, sms,temperature, humadity, ec, door, w_leak 
-	   from alarm_refactor where dev_eui = any($1) and is_active = true`, pq.Array(req.DevEuis))
+	   from alarm_refactor2 where dev_eui = any($1) and is_active = true`, pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -145,7 +145,7 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZon
 	}
 
 	log.Println(devEuis)
-	res, err := db.Exec(`update alarm_refactor set is_active = false where  '\\x' || dev_eui = any($1)`, pq.Array(devEuis))
+	res, err := db.Exec(`update alarm_refactor2 set is_active = false where  '\\x' || dev_eui = any($1)`, pq.Array(devEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -167,7 +167,7 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZon
 func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteAlarmDevEuiRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	res, err := db.Exec("delete from alarm_refactor where dev_eui = $1 and user_id = $2", req.Deveui, req.UserId)
+	res, err := db.Exec("delete from alarm_refactor2 where dev_eui = $1 and user_id = $2", req.Deveui, req.UserId)
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}

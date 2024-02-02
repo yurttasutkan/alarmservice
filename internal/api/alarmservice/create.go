@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	s "github.com/yurttasutkan/alarmservice/internal/storage"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -17,8 +18,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	db := s.DB()
 	var returnID int64
 	var alarmDates []s.AlarmDateFilter
-
 	al := alarm.Alarm
+	pqInt64Array := pq.Int64Array(al.UserID)
 	err := db.QueryRowx(`
 	insert into alarm_refactor2 (
 		dev_eui,
@@ -49,7 +50,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		al.Ec,
 		al.Door,
 		al.WLeak,
-		al.UserID,
+		pqInt64Array,
 		al.IsTimeLimitActive,
 		al.AlarmStartTime,
 		al.AlarmStopTime,
@@ -126,6 +127,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	var alarmDates []s.AlarmDateFilter
 
 	alarm := req.Alarm
+	pqInt64Array := pq.Int64Array(alarm.UserID)
 	res, err := db.Exec(`update alarm_refactor2 
 	set   min_treshold = $1,
 	max_treshold = $2,
@@ -134,7 +136,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	notification = $5,
 	is_time_limit_active = $6,
 	notification_sound = $8,
-	user_id = $10
+	user_id = $9
 	where id = $7`,
 		alarm.MinTreshold,
 		alarm.MaxTreshold,
@@ -144,7 +146,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.IsTimeLimitActive,
 		req.AlarmID,
 		alarm.NotificationSound,
-		alarm.UserID,
+		pqInt64Array,
 	)
 	if err != nil {
 		log.Println(err)

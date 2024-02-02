@@ -59,6 +59,11 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	}
 	s.CreateAlarmLog(ctx, db, reqAlarm, al.UserId, al.IpAddress, 1)
 
+	_, err = db.Exec("update alarm_automation_rules set is_active = false where alarm_id = $1 ", req.AlarmID)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	}
+
 	return &empty.Empty{}, nil
 }
 

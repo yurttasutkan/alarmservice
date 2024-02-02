@@ -16,7 +16,7 @@ func (f AlarmFilters) SQL() string {
 	if f.DevEui != "" {
 		filters = append(filters, fmt.Sprint(" dev_eui =  '", f.DevEui+"'"))
 	}
-	filters = append(filters, fmt.Sprint(" and user_id = ", f.UserID))
+	filters = append(filters, fmt.Sprint(" and ", f.UserID, " = any(user_id)"))
 	if f.Limit != 0 {
 		filters = append(filters, fmt.Sprint(" LIMIT ", f.Limit))
 	}

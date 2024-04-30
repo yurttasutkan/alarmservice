@@ -2,6 +2,7 @@ package alarmservice
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -85,24 +86,32 @@ func (a *AlarmServerAPI) DeleteAlarmDates(ctx context.Context, req *als.DeleteAl
 func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUserAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	res, err := db.Exec("update alarm_refactor2 set is_active = false where user_id = any($1)", pq.Array(req.UserIds))
-	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
-	}
-
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
-	}
-	_, err = db.Exec(`INSERT INTO public.alarm_change_logs(
-		dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
-	   select dev_eui,  min_treshold, max_treshold, user_id, '', 1, sms,temperature, humadity, ec, door, w_leak 
-	   from alarm_refactor2 where user_id = any($1) and is_active = true`, pq.Array(req.UserIds))
-	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
-	}
-	if ra == 0 {
-		return &emptypb.Empty{}, nil
+	for _, i := range req.UserIds {
+		query := `
+        WITH updated_rows AS (
+            UPDATE public.alarm_refactor2
+            SET user_id = array_remove(user_id, $1::bigint)
+            WHERE $1 = ANY(user_id)
+            RETURNING id
+        )
+        SELECT id FROM updated_rows;
+    `
+		// Execute the query and retrieve the result
+		var idSlice []int64
+		err := db.Select(&idSlice, query, i)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		// Convert aggregatedIds to a slice of int64
+		_, err = db.Exec(`UPDATE public.alarm_refactor2
+	SET is_active = false
+	WHERE id = ANY($1)
+	AND cardinality(user_id) = 0`, pq.Int64Array(idSlice))
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
 	}
 
 	return &emptypb.Empty{}, nil
@@ -118,13 +127,13 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
-	_, err = db.Exec(`INSERT INTO public.alarm_change_logs(
-		dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
-	   select dev_eui,  min_treshold, max_treshold, user_id, '', 1, sms,temperature, humadity, ec, door, w_leak 
-	   from alarm_refactor2 where dev_eui = any($1) and is_active = true`, pq.Array(req.DevEuis))
-	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
-	}
+	// _, err = db.Exec(`INSERT INTO public.alarm_change_logs(
+	// 	dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
+	//    select dev_eui,  min_treshold, max_treshold, user_id, '', 1, sms,temperature, humadity, ec, door, w_leak
+	//    from alarm_refactor2 where dev_eui = any($1) and is_active = true`, pq.Array(req.DevEuis))
+	// if err != nil {
+	// 	return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	// }
 	ra, err := res.RowsAffected()
 	if err != nil {
 		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")

@@ -64,7 +64,10 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
-
+	_, err = db.Exec("delete from alarm_date_time where alarm_id = $1", req.AlarmID)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	}
 	return &empty.Empty{}, nil
 }
 
@@ -122,10 +125,21 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteSensorAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	log.Println(req.DevEuis)
-	res, err := db.Exec("update alarm_refactor2 set is_active = false where dev_eui = any($1)", pq.Array(req.DevEuis))
+	var alarmIds []int64
+	err := sqlx.Select(db, &alarmIds, "select id from alarm_refactor2 where dev_eui = any($1) and is_active = true", pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	}
+
+	log.Println(req.DevEuis)
+	_, err = db.Exec("update alarm_refactor2 set is_active = false where dev_eui = any($1)", pq.Array(req.DevEuis))
+	if err != nil {
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	}
+
+	_, err = db.Exec("delete from alarm_date_time where alarm_id = any($1)", pq.Array(alarmIds))
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 	// _, err = db.Exec(`INSERT INTO public.alarm_change_logs(
 	// 	dev_eui, min_treshold, max_treshold, user_id, ip_address, is_deleted, sms, temperature, humadity, ec, door, w_leak)
@@ -134,13 +148,13 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	// if err != nil {
 	// 	return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	// }
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
-	}
-	if ra == 0 {
-		return &emptypb.Empty{}, nil
-	}
+	// ra, err := res.RowsAffected()
+	// if err != nil {
+	// 	return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
+	// }
+	// if ra == 0 {
+	// 	return &emptypb.Empty{}, nil
+	// }
 
 	return &emptypb.Empty{}, nil
 }

@@ -34,6 +34,7 @@ type Alarm struct {
 	Status            int64         `db:"status"`
 	PowerSum          float32       `db:"power_sum"`
 	NotificationSound string        `db:"notification_sound"`
+	Distance          bool          `db:"distance"`
 }
 
 type OrganizationAlarm struct {
@@ -67,6 +68,7 @@ type OrganizationAlarm struct {
 	Status            int64         `db:"status"`
 	PowerSum          float32       `db:"power_sum"`
 	NotificationSound string        `db:"notification_sound"`
+	Distance          bool          `db:"distance"`
 }
 type AlarmWithDates struct {
 	ID                int64   `db:"id"`
@@ -91,6 +93,7 @@ type AlarmWithDates struct {
 	AlarmStartTime    float32 `db:"start_time"`
 	AlarmEndTime      float32 `db:"end_time"`
 	IsActive          bool    `db:"is_active"`
+	Distance          bool    `db:"distance"`
 }
 
 type AlarmDateFilter struct {

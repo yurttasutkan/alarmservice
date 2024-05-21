@@ -2,6 +2,7 @@ package alarmservice
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -19,6 +20,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 	var returnID int64
 	var alarmDates []s.AlarmDateFilter
 	al := alarm.Alarm
+	fmt.Println(al.DevEui, len(al.AlarmDateTime))
 	pqInt64Array := pq.Int64Array(al.UserID)
 	err := db.QueryRowx(`
 	insert into alarm_refactor2 (
@@ -38,8 +40,9 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		alarm_stop_time,
 		zone_category,
 		notification,
-		notification_sound
-	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id`,
+		notification_sound,
+		distance
+	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) returning id`,
 		al.DevEui,
 		al.MinTreshold,
 		al.MaxTreshold,
@@ -57,6 +60,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		al.ZoneCategoryID,
 		al.Notification,
 		al.NotificationSound,
+		al.Distance,
 	).Scan(&returnID)
 	if err != nil {
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
@@ -73,8 +77,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			log.Println(err)
 		}
 	}
-
 	for _, alarmDateTime := range al.AlarmDateTime {
+		fmt.Println("Create alarm date time ", al.DevEui)
 		dt := s.AlarmDateFilter{
 			AlarmId:        returnID,
 			AlarmDay:       alarmDateTime.AlarmDay,
@@ -112,6 +116,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			IsActive:          al.IsActive,
 			AlarmDateTime:     dates,
 			NotificationSound: al.NotificationSound,
+			Distance:          al.Distance,
 		},
 	}
 
@@ -151,7 +156,10 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	if err != nil {
 		log.Println(err)
 	}
-
+	_, err = db.Exec("delete from alarm_date_time where alarm_id = $1", req.Alarm.Id)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	}
 	for _, alarmDateTime := range req.Alarm.AlarmDateTime {
 		dt := s.AlarmDateFilter{
 			AlarmId:        alarmDateTime.AlarmId,
@@ -161,7 +169,6 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		}
 		alarmDates = append(alarmDates, dt)
 	}
-
 	_, err = s.CreateAlarmDates(db, alarmDates)
 	if err != nil {
 		log.Println(err)

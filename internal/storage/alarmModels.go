@@ -36,7 +36,20 @@ type Alarm struct {
 	NotificationSound string        `db:"notification_sound"`
 	Distance          bool          `db:"distance"`
 }
-
+type DoorAlarm struct {
+	ID             int64         `db:"id"`
+	DevEui         string        `db:"dev_eui"`
+	Sms            bool          `db:"sms"`
+	Email          bool          `db:"email"`
+	Notification   bool          `db:"notification"`
+	Time           int64         `db:"time"`
+	UserId         pq.Int64Array `db:"user_id"`
+	IsActive       bool          `db:"is_active"`
+	ZoneName       string        `db:"zone_name"`
+	DeviceName     string        `db:"device_name"`
+	SubmissionDate time.Time     `db:"submission_time"`
+	OrganizationId int64         `db:"organization_id"`
+}
 type OrganizationAlarm struct {
 	ID                int64         `db:"id"`
 	DevEui            string        `db:"dev_eui"`
@@ -69,6 +82,7 @@ type OrganizationAlarm struct {
 	PowerSum          float32       `db:"power_sum"`
 	NotificationSound string        `db:"notification_sound"`
 	Distance          bool          `db:"distance"`
+	Time              int64         `db:"time"`
 }
 type AlarmWithDates struct {
 	ID                int64   `db:"id"`

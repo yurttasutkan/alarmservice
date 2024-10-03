@@ -231,11 +231,19 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 
 	var returnAlarms []*als.OrganizationAlarm
 	var alarms []s.OrganizationAlarm
-	err := sqlx.Select(db, &alarms, `select z.zone_name, d.name as device_name, ar.*
+	var doorAlarms []s.DoorAlarm
+	err := sqlx.Select(db, &alarms, `select z.zone_name, d.name as device_name, 0 AS time, ar.*
 	from alarm_refactor2 as ar
 		inner join device as d on d.dev_eui::text = '\x' || ar.dev_eui
 		inner join zone as z on  d.dev_eui::text = any(z.devices)
-		where d.organization_id = $1 and ar.is_active = true;`, req.OrganizationID)
+		where d.organization_id = $1 and ar.is_active = true`, req.OrganizationID)
+	if err != nil {
+		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
+	err = sqlx.Select(db, &doorAlarms, `select z.zone_name, d.name as device_name, dta.* from door_time_alarm as dta
+	inner join device as d on d.dev_eui::text = '\x' || dta.dev_eui
+		inner join zone as z on  d.dev_eui::text = any(z.devices) where dta.organization_id = $1`, req.OrganizationID)
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
@@ -279,6 +287,34 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			IpAddress:         alarm.IpAddress,
 			AlarmDateTime:     alarmDates,
 			Distance:          alarm.Distance,
+			Time:              alarm.Time,
+		}
+		returnAlarms = append(returnAlarms, &al)
+	}
+
+	for _, door := range doorAlarms {
+		al := als.OrganizationAlarm{
+			Id:                door.ID,
+			DevEui:            door.DevEui,
+			MinTreshold:       0,
+			MaxTreshold:       0,
+			Sms:               door.Sms,
+			Email:             door.Email,
+			Temperature:       false,
+			Humadity:          false,
+			Ec:                false,
+			Door:              false,
+			WLeak:             false,
+			IsTimeLimitActive: false,
+			Notification:      door.Notification,
+			DeviceName:        door.DeviceName,
+			ZoneName:          door.ZoneName,
+			UserName:          "",
+			UserID:            door.UserId,
+			IpAddress:         "",
+			AlarmDateTime:     nil,
+			Distance:          false,
+			Time:              door.Time,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}

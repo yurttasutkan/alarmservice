@@ -37,18 +37,19 @@ type Alarm struct {
 	Distance          bool          `db:"distance"`
 }
 type DoorAlarm struct {
-	ID             int64         `db:"id"`
-	DevEui         string        `db:"dev_eui"`
-	Sms            bool          `db:"sms"`
-	Email          bool          `db:"email"`
-	Notification   bool          `db:"notification"`
-	Time           int64         `db:"time"`
-	UserId         pq.Int64Array `db:"user_id"`
-	IsActive       bool          `db:"is_active"`
-	ZoneName       string        `db:"zone_name"`
-	DeviceName     string        `db:"device_name"`
-	SubmissionDate time.Time     `db:"submission_time"`
-	OrganizationId int64         `db:"organization_id"`
+	ID                int64         `db:"id"`
+	DevEui            string        `db:"dev_eui"`
+	Sms               bool          `db:"sms"`
+	Email             bool          `db:"email"`
+	Notification      bool          `db:"notification"`
+	Time              int64         `db:"time"`
+	UserId            pq.Int64Array `db:"user_id"`
+	IsActive          bool          `db:"is_active"`
+	ZoneName          string        `db:"zone_name"`
+	DeviceName        string        `db:"device_name"`
+	SubmissionDate    time.Time     `db:"submission_time"`
+	OrganizationId    int64         `db:"organization_id"`
+	IsTimeLimitActive bool          `db:"is_time_limit_active"`
 }
 type OrganizationAlarm struct {
 	ID                int64         `db:"id"`

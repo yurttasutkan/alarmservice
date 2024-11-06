@@ -14,10 +14,7 @@ import (
 // Implements the RPC method GetAlarm.
 // Request takes alarmID as field and returns Alarm as response.
 func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmRequest) (*als.GetAlarmResponse, error) {
-
 	db := s.DB()
-
-	fmt.Println("ALARM ID ", alReq.AlarmID)
 	var resp als.GetAlarmResponse
 	var respAlarm s.Alarm
 	var alarmDates []*als.AlarmDateTime
@@ -243,7 +240,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 
 	err = sqlx.Select(db, &doorAlarms, `select z.zone_name, d.name as device_name, dta.* from door_time_alarm as dta
 	inner join device as d on d.dev_eui::text = '\x' || dta.dev_eui
-		inner join zone as z on  d.dev_eui::text = any(z.devices) where dta.organization_id = $1`, req.OrganizationID)
+		inner join zone as z on  d.dev_eui::text = any(z.devices) where dta.is_active = true and dta.organization_id = $1`, req.OrganizationID)
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
@@ -293,6 +290,22 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	}
 
 	for _, door := range doorAlarms {
+		var alarmDates []*als.AlarmDateTime
+		var dates []s.AlarmDateFilter
+		err := sqlx.Select(db, &dates, "select * from door_alarm_date_time where alarm_id = $1", door.ID)
+		if err != nil {
+			return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
+		}
+		for _, date := range dates {
+			dt := &als.AlarmDateTime{
+				Id:             date.ID,
+				AlarmId:        date.AlarmId,
+				AlarmDay:       date.AlarmDay,
+				AlarmStartTime: date.AlarmStartTime,
+				AlarmEndTime:   date.AlarmEndTime,
+			}
+			alarmDates = append(alarmDates, dt)
+		}
 		al := als.OrganizationAlarm{
 			Id:                door.ID,
 			DevEui:            door.DevEui,
@@ -305,14 +318,14 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			Ec:                false,
 			Door:              false,
 			WLeak:             false,
-			IsTimeLimitActive: false,
+			IsTimeLimitActive: door.IsTimeLimitActive,
 			Notification:      door.Notification,
 			DeviceName:        door.DeviceName,
 			ZoneName:          door.ZoneName,
 			UserName:          "",
 			UserID:            door.UserId,
 			IpAddress:         "",
-			AlarmDateTime:     nil,
+			AlarmDateTime:     alarmDates,
 			Distance:          false,
 			Time:              door.Time,
 		}

@@ -141,7 +141,8 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	notification = $5,
 	is_time_limit_active = $6,
 	notification_sound = $8,
-	user_id = $9
+	user_id = $9,
+	is_active = $10
 	where id = $7`,
 		alarm.MinTreshold,
 		alarm.MaxTreshold,
@@ -152,6 +153,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		req.AlarmID,
 		alarm.NotificationSound,
 		pqInt64Array,
+		alarm.IsActive,
 	)
 	if err != nil {
 		log.Println(err)

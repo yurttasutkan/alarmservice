@@ -24,7 +24,7 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	res, err := db.Exec("update alarm_refactor2 set is_active = false where id = $1 ", req.AlarmID)
+	res, err := db.Exec("delete from  alarm_refactor2 where id = $1 ", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -107,8 +107,7 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 			return nil, err
 		}
 		// Convert aggregatedIds to a slice of int64
-		_, err = db.Exec(`UPDATE public.alarm_refactor2
-	SET is_active = false
+		_, err = db.Exec(`delete from  public.alarm_refactor2
 	WHERE id = ANY($1)
 	AND cardinality(user_id) = 0`, pq.Int64Array(idSlice))
 		if err != nil {
@@ -126,13 +125,13 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	db := s.DB()
 
 	var alarmIds []int64
-	err := sqlx.Select(db, &alarmIds, "select id from alarm_refactor2 where dev_eui = any($1) and is_active = true", pq.Array(req.DevEuis))
+	err := sqlx.Select(db, &alarmIds, "select id from alarm_refactor2 where dev_eui = any($1) ", pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 
 	log.Println(req.DevEuis)
-	_, err = db.Exec("update alarm_refactor2 set is_active = false where dev_eui = any($1)", pq.Array(req.DevEuis))
+	_, err = db.Exec("delete from alarm_refactor2 where dev_eui = any($1)", pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}

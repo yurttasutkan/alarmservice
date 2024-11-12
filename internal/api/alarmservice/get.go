@@ -233,14 +233,14 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	from alarm_refactor2 as ar
 		inner join device as d on d.dev_eui::text = '\x' || ar.dev_eui
 		inner join zone as z on  d.dev_eui::text = any(z.devices)
-		where d.organization_id = $1 and ar.is_active = true`, req.OrganizationID)
+		where d.organization_id = $1`, req.OrganizationID)
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
 	err = sqlx.Select(db, &doorAlarms, `select z.zone_name, d.name as device_name, dta.* from door_time_alarm as dta
 	inner join device as d on d.dev_eui::text = '\x' || dta.dev_eui
-		inner join zone as z on  d.dev_eui::text = any(z.devices) where dta.is_active = true and dta.organization_id = $1`, req.OrganizationID)
+		inner join zone as z on  d.dev_eui::text = any(z.devices) where  dta.organization_id = $1`, req.OrganizationID)
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
@@ -285,6 +285,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			AlarmDateTime:     alarmDates,
 			Distance:          alarm.Distance,
 			Time:              alarm.Time,
+			IsActive:          alarm.IsActive,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}

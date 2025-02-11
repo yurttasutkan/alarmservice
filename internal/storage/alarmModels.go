@@ -35,6 +35,7 @@ type Alarm struct {
 	PowerSum          float32       `db:"power_sum"`
 	NotificationSound string        `db:"notification_sound"`
 	Distance          bool          `db:"distance"`
+	DefrostTime       int64         `db:"defrost_time"`
 }
 type DoorAlarm struct {
 	ID                int64         `db:"id"`
@@ -84,6 +85,7 @@ type OrganizationAlarm struct {
 	NotificationSound string        `db:"notification_sound"`
 	Distance          bool          `db:"distance"`
 	Time              int64         `db:"time"`
+	DefrostTime       int64         `db:"defrost_time"`
 }
 type AlarmWithDates struct {
 	ID                int64   `db:"id"`

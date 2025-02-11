@@ -41,8 +41,9 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		zone_category,
 		notification,
 		notification_sound,
-		distance
-	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) returning id`,
+		distance,
+		pressure
+	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) returning id`,
 		al.DevEui,
 		al.MinTreshold,
 		al.MaxTreshold,
@@ -61,6 +62,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		al.Notification,
 		al.NotificationSound,
 		al.Distance,
+		al.Pressure,
 	).Scan(&returnID)
 	if err != nil {
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
@@ -117,6 +119,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 			AlarmDateTime:     dates,
 			NotificationSound: al.NotificationSound,
 			Distance:          al.Distance,
+			DefrostTime:       al.DefrostTime,
+			Pressure:          al.Pressure,
 		},
 	}
 
@@ -142,7 +146,8 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	is_time_limit_active = $6,
 	notification_sound = $8,
 	user_id = $9,
-	is_active = $10
+	is_active = $10,
+	defrost_time = $11
 	where id = $7`,
 		alarm.MinTreshold,
 		alarm.MaxTreshold,
@@ -154,6 +159,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		alarm.NotificationSound,
 		pqInt64Array,
 		alarm.IsActive,
+		alarm.DefrostTime,
 	)
 	if err != nil {
 		log.Println(err)

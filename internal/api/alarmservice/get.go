@@ -63,6 +63,8 @@ func (a *AlarmServerAPI) GetAlarm(ctx context.Context, alReq *als.GetAlarmReques
 		AlarmDateTime:     alarmDates,
 		NotificationSound: respAlarm.NotificationSound,
 		Distance:          respAlarm.Distance,
+		Pressure:          respAlarm.Pressure,
+		DefrostTime:       respAlarm.DefrostTime,
 	}
 	fmt.Println("GEL ALARM SONU")
 
@@ -215,6 +217,8 @@ func (a *AlarmServerAPI) GetAlarmList(ctx context.Context, req *als.GetAlarmList
 			AlarmDateTime:     alarmDates,
 			NotificationSound: alarm.NotificationSound,
 			Distance:          alarm.Distance,
+			DefrostTime:       alarm.DefrostTime,
+			Pressure:          alarm.Pressure,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
@@ -244,7 +248,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 	if err != nil {
 		return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, s.HandlePSQLError(s.Select, err, "select error")
 	}
-
+	fmt.Println("1")
 	for _, alarm := range alarms {
 		var alarmDates []*als.AlarmDateTime
 		var dates []s.AlarmDateFilter
@@ -262,7 +266,7 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			}
 			alarmDates = append(alarmDates, dt)
 		}
-
+		fmt.Println("2")
 		al := als.OrganizationAlarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,
@@ -286,10 +290,13 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			Distance:          alarm.Distance,
 			Time:              alarm.Time,
 			IsActive:          alarm.IsActive,
+			DefrostTime:       alarm.DefrostTime,
+			Pressure:          alarm.Pressure,
+			ZoneCategoryID:    alarm.ZoneCategoryId,
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
-
+	fmt.Println("3")
 	for _, door := range doorAlarms {
 		var alarmDates []*als.AlarmDateTime
 		var dates []s.AlarmDateFilter
@@ -332,5 +339,6 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 		}
 		returnAlarms = append(returnAlarms, &al)
 	}
+	fmt.Println("4")
 	return &als.GetOrganizationAlarmListResponse{RespList: returnAlarms}, nil
 }

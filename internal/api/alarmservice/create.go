@@ -13,74 +13,101 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// Helper function to log changes into the audit log
+// func (s *AlarmServerAPI) LogAudit(db *sqlx.DB, userID int64, changeType, tableName string, recordID int64, previousValue, newValue interface{}, ipAddress, reason string) error {
+// 	previousJSON, _ := json.Marshal(previousValue)
+// 	newJSON, _ := json.Marshal(newValue)
+
+// 	query := `
+// 		INSERT INTO audit_logs (user_id, change_type, table_name, record_id, previous_value, new_value, ip_address, reason)
+// 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+// 	`
+// 	_, err := db.Exec(query, userID, changeType, tableName, recordID, previousJSON, newJSON, ipAddress, reason)
+// 	return err
+// }
+
 // Implements the RPC method CreateAlarm.
-// Inserts into alarm_refactor with parameters given by request and returns the created Alarm as response.
+// Inserts into alarm_refactor2 and logs the change in the audit logs.
 func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
 	db := s.DB()
+	tx, err := db.Beginx()
+	if err != nil {
+		return nil, fmt.Errorf("could not start transaction: %v", err)
+	}
+	defer tx.Rollback()
+
 	var returnID int64
 	var alarmDates []s.AlarmDateFilter
 	al := alarm.Alarm
-	fmt.Println(al.DevEui, len(al.AlarmDateTime))
+
+	// Insert alarm into alarm_refactor2
 	pqInt64Array := pq.Int64Array(al.UserID)
-	err := db.QueryRowx(`
-	insert into alarm_refactor2 (
-		dev_eui,
-		min_treshold,
-		max_treshold,
-		sms,
-		email,
-		temperature,
-		humadity,
-		ec,
-		door,
-		w_leak,
-		user_id,
-		is_time_limit_active,
-		alarm_start_time,
-		alarm_stop_time,
-		zone_category,
-		notification,
-		notification_sound,
-		distance,
-		pressure
-	) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) returning id`,
-		al.DevEui,
-		al.MinTreshold,
-		al.MaxTreshold,
-		al.Sms,
-		al.Email,
-		al.Temperature,
-		al.Humadity,
-		al.Ec,
-		al.Door,
-		al.WLeak,
-		pqInt64Array,
-		al.IsTimeLimitActive,
-		al.AlarmStartTime,
-		al.AlarmStopTime,
-		al.ZoneCategoryID,
-		al.Notification,
-		al.NotificationSound,
-		al.Distance,
-		al.Pressure,
+	err = tx.QueryRowx(`
+		insert into alarm_refactor2 (
+			dev_eui, min_treshold, max_treshold, sms, email, temperature, humadity, ec, door, w_leak,
+			user_id, is_time_limit_active, alarm_start_time, alarm_stop_time, zone_category, notification,
+			notification_sound, distance, pressure
+		) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+		returning id`,
+		al.DevEui, al.MinTreshold, al.MaxTreshold, al.Sms, al.Email, al.Temperature, al.Humadity, al.Ec,
+		al.Door, al.WLeak, pqInt64Array, al.IsTimeLimitActive, al.AlarmStartTime, al.AlarmStopTime,
+		al.ZoneCategoryID, al.Notification, al.NotificationSound, al.Distance, al.Pressure,
 	).Scan(&returnID)
 	if err != nil {
 		return nil, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
 
-	// If Zone Category is 1, initialize als struct in order to use for CreateColdRoomRestrictionsRequest
-	if alarm.Alarm.ZoneCategoryID == 1 {
-		err := s.CreateColdRoomRestrictions(al, returnID, db)
-		if err != nil {
-			log.Println(err)
+	// Log the creation in the audit log
+	// Creating a struct for previous values (which is nil here as it's a new record)
+	var previousValue interface{} = nil
+
+	// New value contains the values of the alarm being created
+	newAlarm := als.Alarm{
+		Id:                returnID,
+		DevEui:            al.DevEui,
+		MinTreshold:       al.MinTreshold,
+		MaxTreshold:       al.MaxTreshold,
+		Sms:               al.Sms,
+		Email:             al.Email,
+		Notification:      al.Notification,
+		Temperature:       al.Temperature,
+		Humadity:          al.Humadity,
+		Ec:                al.Ec,
+		Door:              al.Door,
+		WLeak:             al.WLeak,
+		UserID:            al.UserID,
+		IpAddress:         al.IpAddress,
+		IsTimeLimitActive: al.IsTimeLimitActive,
+		AlarmStartTime:    al.AlarmStartTime,
+		AlarmStopTime:     al.AlarmStopTime,
+		ZoneCategoryID:    al.ZoneCategoryID,
+		IsActive:          al.IsActive,
+		AlarmDateTime:     nil, // You can append dates later
+		NotificationSound: al.NotificationSound,
+		Distance:          al.Distance,
+		DefrostTime:       al.DefrostTime,
+		Pressure:          al.Pressure,
+	}
+
+	if err := s.LogAudit(db, al.UserID, "create", "alarm_refactor2", returnID, previousValue, newAlarm, al.IpAddress, "Alarm created"); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("could not log audit: %v", err)
+	}
+
+	// Handle specific logic for ZoneCategoryID = 1
+	if al.ZoneCategoryID == 1 {
+		if err := s.CreateColdRoomRestrictions(al, returnID, tx); err != nil {
+			tx.Rollback()
+			return nil, err
 		}
-		err = s.CreateUtku(al, returnID, db)
-		if err != nil {
-			log.Println(err)
+		if err := s.CreateUtku(al, returnID, tx); err != nil {
+			tx.Rollback()
+			return nil, err
 		}
 	}
+
+	// Handle alarm date times
 	for _, alarmDateTime := range al.AlarmDateTime {
-		fmt.Println("Create alarm date time ", al.DevEui)
 		dt := s.AlarmDateFilter{
 			AlarmId:        returnID,
 			AlarmDay:       alarmDateTime.AlarmDay,
@@ -90,11 +117,14 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		alarmDates = append(alarmDates, dt)
 	}
 
-	dates, err := s.CreateAlarmDates(db, alarmDates)
+	// Create alarm dates
+	dates, err := s.CreateAlarmDates(tx, alarmDates)
 	if err != nil {
-		log.Println(err)
+		tx.Rollback()
+		return nil, err
 	}
 
+	// Construct response
 	resp := als.CreateAlarmResponse{
 		Alarm: &als.Alarm{
 			Id:                returnID,
@@ -124,7 +154,10 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		},
 	}
 
-	s.CreateAlarmLog(context, db, resp.Alarm, resp.Alarm.UserID, resp.Alarm.IpAddress, 1)
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("could not commit transaction: %v", err)
+	}
 
 	return &resp, nil
 }

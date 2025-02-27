@@ -266,7 +266,6 @@ func (a *AlarmServerAPI) GetOrganizationAlarmList(ctx context.Context, req *als.
 			}
 			alarmDates = append(alarmDates, dt)
 		}
-		fmt.Println("2")
 		al := als.OrganizationAlarm{
 			Id:                alarm.ID,
 			DevEui:            alarm.DevEui,

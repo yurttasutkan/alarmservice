@@ -157,8 +157,9 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	db := s.DB()
 	var alarmDates []s.AlarmDateFilter
 
+	var currentAlarm s.Alarm
 	// Get the previous values of the alarm
-	currentAlarm, err := db.Exec("select * from alarm_refactor2 where id = $1", req.AlarmID)
+	err := sqlx.Get(db, &currentAlarm, "select * from alarm_refactor2 where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	s "github.com/yurttasutkan/alarmservice/internal/storage"
@@ -16,15 +17,15 @@ import (
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	// Fetch the alarm before deletion
-	var al s.Alarm
-	err := db.Get(&al, "SELECT * FROM alarm_refactor2 WHERE id = $1", req.AlarmID)
+	var currentAlarm s.Alarm
+	// Get the previous values of the alarm
+	err := sqlx.Get(db, &currentAlarm, "select * from alarm_refactor2 where id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
 	// Log the delete action
-	err = s.LogAudit(db, al.ID, req.UserID, "DELETE", al, nil)
+	err = s.LogAudit(db, currentAlarm.ID, req.UserID, "DELETE", currentAlarm, nil)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
@@ -46,27 +47,27 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 
 	// Log the alarm deletion event
 	reqAlarm := &als.Alarm{
-		Id:                al.ID,
-		DevEui:            al.DevEui,
-		MinTreshold:       al.MinTreshold,
-		MaxTreshold:       al.MaxTreshold,
-		Sms:               al.Sms,
-		Email:             al.Email,
-		Notification:      al.Notification,
-		Temperature:       al.Temperature,
-		Humadity:          al.Humadity,
-		Ec:                al.Ec,
-		Door:              al.Door,
-		WLeak:             al.WaterLeak,
-		UserID:            al.UserId,
-		IpAddress:         al.IpAddress,
-		IsTimeLimitActive: al.IsTimeLimitActive,
-		AlarmStartTime:    al.AlarmStartTime,
-		AlarmStopTime:     al.AlarmStopTime,
-		ZoneCategoryID:    al.ZoneCategoryId,
-		IsActive:          al.IsActive,
+		Id:                currentAlarm.ID,
+		DevEui:            currentAlarm.DevEui,
+		MinTreshold:       currentAlarm.MinTreshold,
+		MaxTreshold:       currentAlarm.MaxTreshold,
+		Sms:               currentAlarm.Sms,
+		Email:             currentAlarm.Email,
+		Notification:      currentAlarm.Notification,
+		Temperature:       currentAlarm.Temperature,
+		Humadity:          currentAlarm.Humadity,
+		Ec:                currentAlarm.Ec,
+		Door:              currentAlarm.Door,
+		WLeak:             currentAlarm.WaterLeak,
+		UserID:            currentAlarm.UserId,
+		IpAddress:         currentAlarm.IpAddress,
+		IsTimeLimitActive: currentAlarm.IsTimeLimitActive,
+		AlarmStartTime:    currentAlarm.AlarmStartTime,
+		AlarmStopTime:     currentAlarm.AlarmStopTime,
+		ZoneCategoryID:    currentAlarm.ZoneCategoryId,
+		IsActive:          currentAlarm.IsActive,
 	}
-	s.CreateAlarmLog(ctx, db, reqAlarm, al.UserId, al.IpAddress, 1)
+	s.CreateAlarmLog(ctx, db, reqAlarm, currentAlarm.UserId, currentAlarm.IpAddress, 1)
 
 	// Deactivate automation rules related to this alarm
 	_, err = db.Exec("UPDATE alarm_automation_rules SET is_active = false WHERE alarm_id = $1", req.AlarmID)
@@ -114,7 +115,7 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 
 		// Fetch updated alarm records before deleting
 		var alarms []s.Alarm
-		err := db.Select(&alarms, query, i)
+		err := sqlx.Select(db, &alarms, query, i)
 		if err != nil {
 			fmt.Println("Update error:", err)
 			return nil, err

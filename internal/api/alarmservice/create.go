@@ -13,22 +13,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// Helper function to log changes into the audit log
-// func (s *AlarmServerAPI) LogAudit(db *sqlx.DB, userID int64, changeType, tableName string, recordID int64, previousValue, newValue interface{}, ipAddress, reason string) error {
-// 	previousJSON, _ := json.Marshal(previousValue)
-// 	newJSON, _ := json.Marshal(newValue)
-
-// 	query := `
-// 		INSERT INTO audit_logs (user_id, change_type, table_name, record_id, previous_value, new_value, ip_address, reason)
-// 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-// 	`
-// 	_, err := db.Exec(query, userID, changeType, tableName, recordID, previousJSON, newJSON, ipAddress, reason)
-// 	return err
-// }
-
 // Implements the RPC method CreateAlarm.
 // Inserts into alarm_refactor2 and logs the change in the audit logs.
-func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
+func (a *AlarmServerAPI) CreateAlarm(context context.Context, req *als.CreateAlarmRequest) (*als.CreateAlarmResponse, error) {
 	db := s.DB()
 	tx, err := db.Beginx()
 	if err != nil {
@@ -38,7 +25,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 
 	var returnID int64
 	var alarmDates []s.AlarmDateFilter
-	al := alarm.Alarm
+	al := req.Alarm
 
 	// Insert alarm into alarm_refactor2
 	pqInt64Array := pq.Int64Array(al.UserID)
@@ -89,7 +76,8 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, alarm *als.CreateA
 		Pressure:          al.Pressure,
 	}
 
-	if err := s.LogAudit(db, al.UserID, "create", "alarm_refactor2", returnID, previousValue, newAlarm, al.IpAddress, "Alarm created"); err != nil {
+	// Log the creation in the audit log
+	if err := s.LogAudit(db, newAlarm.Id, req.UserId, "INSERT", previousValue, newAlarm); err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("could not log audit: %v", err)
 	}
@@ -168,6 +156,12 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	db := s.DB()
 	var alarmDates []s.AlarmDateFilter
 
+	// Get the previous values of the alarm
+	currentAlarm, err := db.Exec("select * from alarm_refactor2 where id = $1", req.AlarmID)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
 	alarm := req.Alarm
 	pqInt64Array := pq.Int64Array(alarm.UserID)
 	res, err := db.Exec(`update alarm_refactor2 
@@ -224,6 +218,10 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	}
 	if ra == 0 {
 		return &emptypb.Empty{}, nil
+	}
+	// Log the creation in the audit log
+	if err := s.LogAudit(db, alarm.Id, req.UserId, "UPDATE", currentAlarm, res); err != nil {
+		return nil, fmt.Errorf("could not log audit: %v", err)
 	}
 
 	return &emptypb.Empty{}, nil

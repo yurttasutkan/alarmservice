@@ -7,36 +7,44 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	s "github.com/yurttasutkan/alarmservice/internal/storage"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// Implements the RPC method DeleteAlarm.
-// Deletes the alarm according to userID and alarmID given by the request.
 func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
+
+	// Fetch the alarm before deletion
 	var al s.Alarm
-	err := sqlx.Get(db, &al, "select * from alarm_refactor2 where id = $1", req.AlarmID)
+	err := db.Get(&al, "SELECT * FROM alarm_refactor2 WHERE id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	res, err := db.Exec("delete from  alarm_refactor2 where id = $1 ", req.AlarmID)
+	// Log the delete action
+	err = s.LogAudit(db, al.ID, req.UserID, "DELETE", al, nil)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
+	}
+
+	// Delete from `alarm_refactor2`
+	res, err := db.Exec("DELETE FROM alarm_refactor2 WHERE id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 
+	// Check if the alarm was actually deleted
 	ra, err := res.RowsAffected()
 	if err != nil {
 		return &empty.Empty{}, errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return &empty.Empty{}, nil
+		return &empty.Empty{}, errors.New("no rows deleted: alarm may not exist")
 	}
 
+	// Log the alarm deletion event
 	reqAlarm := &als.Alarm{
 		Id:                al.ID,
 		DevEui:            al.DevEui,
@@ -60,14 +68,18 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	}
 	s.CreateAlarmLog(ctx, db, reqAlarm, al.UserId, al.IpAddress, 1)
 
-	_, err = db.Exec("update alarm_automation_rules set is_active = false where alarm_id = $1 ", req.AlarmID)
+	// Deactivate automation rules related to this alarm
+	_, err = db.Exec("UPDATE alarm_automation_rules SET is_active = false WHERE alarm_id = $1", req.AlarmID)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Update, err, "update error")
+	}
+
+	// Delete related records in `alarm_date_time`
+	_, err = db.Exec("DELETE FROM alarm_date_time WHERE alarm_id = $1", req.AlarmID)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
-	_, err = db.Exec("delete from alarm_date_time where alarm_id = $1", req.AlarmID)
-	if err != nil {
-		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
-	}
+
 	return &empty.Empty{}, nil
 }
 
@@ -91,52 +103,100 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 
 	for _, i := range req.UserIds {
 		query := `
-        WITH updated_rows AS (
-            UPDATE public.alarm_refactor2
-            SET user_id = array_remove(user_id, $1::bigint)
-            WHERE $1 = ANY(user_id)
-            RETURNING id
-        )
-        SELECT id FROM updated_rows;
-    `
-		// Execute the query and retrieve the result
-		var idSlice []int64
-		err := db.Select(&idSlice, query, i)
+		WITH updated_rows AS (
+			UPDATE public.alarm_refactor2
+			SET user_id = array_remove(user_id, $1::bigint)
+			WHERE $1 = ANY(user_id)
+			RETURNING *
+		)
+		SELECT * FROM updated_rows;
+		`
+
+		// Fetch updated alarm records before deleting
+		var alarms []s.Alarm
+		err := db.Select(&alarms, query, i)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Update error:", err)
 			return nil, err
 		}
-		// Convert aggregatedIds to a slice of int64
-		_, err = db.Exec(`delete from  public.alarm_refactor2
-	WHERE id = ANY($1)
-	AND cardinality(user_id) = 0`, pq.Int64Array(idSlice))
+
+		// Log the delete action before actually deleting
+		for _, al := range alarms {
+			if len(al.UserId) == 1 { // If it's the last user, it will be deleted
+				err = s.LogAudit(db, al.ID, req.UserSentId, "DELETE", al, nil)
+				if err != nil {
+					return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
+				}
+			}
+		}
+
+		// Delete alarms where `user_id` is now empty
+		_, err = db.Exec(`DELETE FROM public.alarm_refactor2
+			WHERE id = ANY($1) AND cardinality(user_id) = 0`, pq.Array(getAlarmIDs(alarms)))
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Delete error:", err)
 			return nil, err
 		}
 	}
 
-	return &emptypb.Empty{}, nil
+	return &empty.Empty{}, nil
 }
 
-// Implements the RPC method DeleteSensorAlarm.
-// Deletes the Alarm according to the DevEui given by the request.
+// Helper function to extract IDs from alarms
+func getAlarmIDs(alarms []s.Alarm) []int64 {
+	var ids []int64
+	for _, alarm := range alarms {
+		ids = append(ids, alarm.ID)
+	}
+	return ids
+}
+
 func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteSensorAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
+	// Fetch all alarms that match the given DevEUIs
+	var alarms []s.Alarm
+	err := db.Select(&alarms, "SELECT * FROM alarm_refactor2 WHERE dev_eui = ANY($1)", pq.Array(req.DevEuis))
+	if err != nil {
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
+	// If no alarms found, return early
+	if len(alarms) == 0 {
+		return &emptypb.Empty{}, errors.New("no alarms found for given DevEUIs")
+	}
+
+	// Extract alarm IDs for later deletions
 	var alarmIds []int64
-	err := sqlx.Select(db, &alarmIds, "select id from alarm_refactor2 where dev_eui = any($1) ", pq.Array(req.DevEuis))
+	for _, al := range alarms {
+		alarmIds = append(alarmIds, al.ID)
+	}
+
+	// Log the delete action before actual deletion
+	for _, al := range alarms {
+		err = s.LogAudit(db, al.ID, req.UserId, "DELETE", al, nil)
+		if err != nil {
+			return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
+		}
+	}
+
+	// Delete alarms from `alarm_refactor2`
+	res, err := db.Exec("DELETE FROM alarm_refactor2 WHERE dev_eui = ANY($1)", pq.Array(req.DevEuis))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 
-	log.Println(req.DevEuis)
-	_, err = db.Exec("delete from alarm_refactor2 where dev_eui = any($1)", pq.Array(req.DevEuis))
+	// Check if alarms were deleted
+	ra, err := res.RowsAffected()
 	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
+	}
+	if ra == 0 {
+		return &emptypb.Empty{}, errors.New("no rows deleted: alarms may not exist")
 	}
 
-	_, err = db.Exec("delete from alarm_date_time where alarm_id = any($1)", pq.Array(alarmIds))
+	// Delete related records from `alarm_date_time`
+	_, err = db.Exec("DELETE FROM alarm_date_time WHERE alarm_id = ANY($1)", pq.Array(alarmIds))
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
@@ -154,7 +214,6 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 	// if ra == 0 {
 	// 	return &emptypb.Empty{}, nil
 	// }
-
 	return &emptypb.Empty{}, nil
 }
 
@@ -163,25 +222,56 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZoneAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	log.Println(req.Zones)
-	var devEuis []string
+	log.Println("Zones received:", req.Zones)
 
-	err := sqlx.Select(db, &devEuis, `select devices from zone where zone_id = any($1)`, pq.Array(req.Zones))
+	// Get device EUIs from the given zones
+	var devEuis []string
+	err := db.Select(&devEuis, `SELECT devices FROM zone WHERE zone_id = ANY($1)`, pq.Array(req.Zones))
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
 	}
 
-	log.Println(devEuis)
-	res, err := db.Exec(`update alarm_refactor2 set is_active = false where  '\\x' || dev_eui = any($1)`, pq.Array(devEuis))
-	if err != nil {
-		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
+	if len(devEuis) == 0 {
+		return &emptypb.Empty{}, errors.New("no devices found in given zones")
 	}
 
+	log.Println("Device EUIs from zones:", devEuis)
+
+	// Fetch alarms that will be updated
+	var alarms []s.Alarm
+	err = db.Select(&alarms, `SELECT * FROM alarm_refactor2 WHERE ('\\x' || dev_eui) = ANY($1)`, pq.Array(devEuis))
+	if err != nil {
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
+	if len(alarms) == 0 {
+		return &emptypb.Empty{}, errors.New("no alarms found for the devices in given zones")
+	}
+
+	// Log the update action before modifying alarms
+	for _, al := range alarms {
+		updatedAlarm := al
+		updatedAlarm.IsActive = false // Simulating the update
+
+		err = s.LogAudit(db, al.ID, req.UserId, "UPDATE", al, updatedAlarm)
+		if err != nil {
+			return &emptypb.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
+		}
+	}
+
+	// Update alarms to set `is_active = false`
+	res, err := db.Exec(`UPDATE alarm_refactor2 SET is_active = false WHERE ('\\x' || dev_eui) = ANY($1)`, pq.Array(devEuis))
+	if err != nil {
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Update, err, "update error")
+	}
+
+	// Check affected rows
 	ra, err := res.RowsAffected()
 	if err != nil {
 		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
 	}
-	log.Println(ra)
+	log.Println("Rows updated:", ra)
+
 	if ra == 0 {
 		return &emptypb.Empty{}, nil
 	}
@@ -194,17 +284,32 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZon
 func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteAlarmDevEuiRequest) (*empty.Empty, error) {
 	db := s.DB()
 
-	res, err := db.Exec("delete from alarm_refactor2 where dev_eui = $1 and user_id = $2", req.Deveui, req.UserId)
+	// Fetch the alarm before deletion
+	var alarm s.Alarm
+	err := db.Get(&alarm, "SELECT * FROM alarm_refactor2 WHERE dev_eui = $1 AND user_id = $2", req.Deveui, req.UserId)
+	if err != nil {
+		return &emptypb.Empty{}, s.HandlePSQLError(s.Select, err, "select error")
+	}
+
+	// Log the delete action before deleting the record
+	err = s.LogAudit(db, alarm.ID, req.UserId, "DELETE", alarm, nil)
+	if err != nil {
+		return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
+	}
+
+	// Delete the alarm
+	res, err := db.Exec("DELETE FROM alarm_refactor2 WHERE dev_eui = $1 AND user_id = $2", req.Deveui, req.UserId)
 	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Delete, err, "delete error")
 	}
 
+	// Check if the alarm was actually deleted
 	ra, err := res.RowsAffected()
 	if err != nil {
 		return &emptypb.Empty{}, errors.Wrap(err, "get rows affected error")
 	}
 	if ra == 0 {
-		return &emptypb.Empty{}, nil
+		return &emptypb.Empty{}, errors.New("no alarm deleted: alarm may not exist")
 	}
 
 	return &emptypb.Empty{}, nil

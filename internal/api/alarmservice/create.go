@@ -152,6 +152,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, req *als.CreateAla
 
 // Implements the RPC method UpdateAlarm.
 // Updates alarm_refactor table with the parameters given by request.
+// TODO: FİX THİS METHOD NO RES RETURN
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 	var alarmDates []s.AlarmDateFilter

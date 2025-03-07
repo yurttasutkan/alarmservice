@@ -152,7 +152,6 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, req *als.CreateAla
 
 // Implements the RPC method UpdateAlarm.
 // Updates alarm_refactor table with the parameters given by request.
-// TODO: FİX THİS METHOD NO RES RETURN
 func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRequest) (*empty.Empty, error) {
 	db := s.DB()
 	var alarmDates []s.AlarmDateFilter
@@ -207,10 +206,6 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	}
 	_, err = s.CreateAlarmDates(db, alarmDates)
 	if err != nil {
-		log.Println(err)
-	}
-
-	if err != nil {
 		return &emptypb.Empty{}, s.HandlePSQLError(s.Update, err, "update error")
 	}
 	ra, err := res.RowsAffected()
@@ -220,8 +215,27 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 	if ra == 0 {
 		return &emptypb.Empty{}, nil
 	}
+
+	// Fetch the updated alarm from the database
+	var updatedAlarm s.Alarm
+	err = db.QueryRow("SELECT * FROM alarm_refactor2 WHERE id = $1", req.AlarmID).Scan(
+		&updatedAlarm.ID,
+		&updatedAlarm.MinTreshold,
+		&updatedAlarm.MaxTreshold,
+		&updatedAlarm.Sms,
+		&updatedAlarm.Email,
+		&updatedAlarm.Notification,
+		&updatedAlarm.IsTimeLimitActive,
+		&updatedAlarm.NotificationSound,
+		&updatedAlarm.UserId,
+		&updatedAlarm.IsActive,
+		&updatedAlarm.DefrostTime,
+	)
+	if err != nil {
+		return nil, s.HandlePSQLError(s.Select, err, "fetch updated alarm error")
+	}
 	// Log the creation in the audit log
-	if err := s.LogAudit(db, alarm.Id, req.UserId, "UPDATE", currentAlarm, res); err != nil {
+	if err := s.LogAudit(db, alarm.Id, req.UserId, "UPDATE", currentAlarm, updatedAlarm); err != nil {
 		return nil, fmt.Errorf("could not log audit: %v", err)
 	}
 

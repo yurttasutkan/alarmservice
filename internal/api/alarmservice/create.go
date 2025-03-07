@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/ibrahimozekici/chirpstack-api/go/v5/als"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	s "github.com/yurttasutkan/alarmservice/internal/storage"
@@ -218,19 +219,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 
 	// Fetch the updated alarm from the database
 	var updatedAlarm s.Alarm
-	err = db.QueryRow("SELECT * FROM alarm_refactor2 WHERE id = $1", req.AlarmID).Scan(
-		&updatedAlarm.ID,
-		&updatedAlarm.MinTreshold,
-		&updatedAlarm.MaxTreshold,
-		&updatedAlarm.Sms,
-		&updatedAlarm.Email,
-		&updatedAlarm.Notification,
-		&updatedAlarm.IsTimeLimitActive,
-		&updatedAlarm.NotificationSound,
-		&updatedAlarm.UserId,
-		&updatedAlarm.IsActive,
-		&updatedAlarm.DefrostTime,
-	)
+	err = sqlx.Get(db, &updatedAlarm, "select * from alarm_refactor2 where id = $1", req.AlarmID)
 	if err != nil {
 		return nil, s.HandlePSQLError(s.Select, err, "fetch updated alarm error")
 	}

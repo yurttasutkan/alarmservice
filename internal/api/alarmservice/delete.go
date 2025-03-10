@@ -25,7 +25,7 @@ func (a *AlarmServerAPI) DeleteAlarm(ctx context.Context, req *als.DeleteAlarmRe
 	}
 
 	// Log the delete action
-	err = s.LogAudit(db, currentAlarm.ID, req.UserID, "DELETE", currentAlarm, nil)
+	err = s.LogAudit(db, currentAlarm.ID, currentAlarm.DevEui, req.UserID, "DELETE", currentAlarm, nil)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 	}
@@ -124,7 +124,7 @@ func (a *AlarmServerAPI) DeleteUserAlarm(ctx context.Context, req *als.DeleteUse
 		// Log the delete action before actually deleting
 		for _, al := range alarms {
 			if len(al.UserId) == 1 { // If it's the last user, it will be deleted
-				err = s.LogAudit(db, al.ID, req.UserSentId, "DELETE", al, nil)
+				err = s.LogAudit(db, al.ID, al.DevEui, req.UserSentId, "DELETE", al, nil)
 				if err != nil {
 					return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 				}
@@ -175,7 +175,7 @@ func (a *AlarmServerAPI) DeleteSensorAlarm(ctx context.Context, req *als.DeleteS
 
 	// Log the delete action before actual deletion
 	for _, al := range alarms {
-		err = s.LogAudit(db, al.ID, req.UserId, "DELETE", al, nil)
+		err = s.LogAudit(db, al.ID, al.DevEui, req.UserId, "DELETE", al, nil)
 		if err != nil {
 			return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 		}
@@ -254,7 +254,7 @@ func (a *AlarmServerAPI) DeleteZoneAlarm(ctx context.Context, req *als.DeleteZon
 		updatedAlarm := al
 		updatedAlarm.IsActive = false // Simulating the update
 
-		err = s.LogAudit(db, al.ID, req.UserId, "UPDATE", al, updatedAlarm)
+		err = s.LogAudit(db, al.ID, al.DevEui, req.UserId, "UPDATE", al, updatedAlarm)
 		if err != nil {
 			return &emptypb.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 		}
@@ -293,7 +293,7 @@ func (a *AlarmServerAPI) DeleteAlarmDevEui(ctx context.Context, req *als.DeleteA
 	}
 
 	// Log the delete action before deleting the record
-	err = s.LogAudit(db, alarm.ID, req.UserId, "DELETE", alarm, nil)
+	err = s.LogAudit(db, alarm.ID, alarm.DevEui, req.UserId, "DELETE", alarm, nil)
 	if err != nil {
 		return &empty.Empty{}, s.HandlePSQLError(s.Insert, err, "insert error")
 	}

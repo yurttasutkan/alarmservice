@@ -78,7 +78,7 @@ func (a *AlarmServerAPI) CreateAlarm(context context.Context, req *als.CreateAla
 	}
 
 	// Log the creation in the audit log
-	if err := s.LogAudit(db, newAlarm.Id, req.UserId, "INSERT", previousValue, newAlarm); err != nil {
+	if err := s.LogAudit(db, newAlarm.Id, newAlarm.DevEui, req.UserId, "INSERT", previousValue, newAlarm); err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("could not log audit: %v", err)
 	}
@@ -225,7 +225,7 @@ func (a *AlarmServerAPI) UpdateAlarm(ctx context.Context, req *als.UpdateAlarmRe
 		return nil, s.HandlePSQLError(s.Select, err, "fetch updated alarm error")
 	}
 	// Log the creation in the audit log
-	if err := s.LogAudit(db, alarm.Id, req.UserId, "UPDATE", currentAlarm, updatedAlarm); err != nil {
+	if err := s.LogAudit(db, alarm.Id, alarm.DevEui, req.UserId, "UPDATE", currentAlarm, updatedAlarm); err != nil {
 		return nil, fmt.Errorf("could not log audit: %v", err)
 	}
 
